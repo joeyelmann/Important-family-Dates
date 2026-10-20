@@ -121,6 +121,9 @@
       .cad-status { font-size: 14px; min-height: 22px; margin: 10px 0 0; }
       .cad-status.ok { color: #2e7d32; }
       .cad-status.err { color: #b3261e; }
+      .cad-check { justify-content: center; }
+      .cad-check .chk { display: flex; align-items: center; gap: 8px; font-size: 15px; cursor: pointer; padding-top: 22px; }
+      .cad-check input { width: 20px; height: 20px; padding: 0; }
 
 
       h2.section-title {
@@ -401,18 +404,18 @@
       <div class="tree-wrap"><svg id="tree" role="img" aria-label="&#193;rvore geneal&#243;gica da fam&#237;lia"></svg></div>
 
       <h2 class="section-title" id="cadastro">Adicionar pessoa</h2>
-      <p class="tree-hint">Preencha o b&#225;sico — a data hebraica &#233; calculada automaticamente e a p&#225;gina se atualiza na hora. Para anivers&#225;rio, a data principal &#233; o nascimento; para mishmará, o falecimento — a outra data &#233; opcional.</p>
+      <p class="tree-hint">Preencha o b&#225;sico — a data hebraica &#233; calculada automaticamente e a p&#225;gina se atualiza na hora. Se a pessoa faleceu, marque &#8220;Faleceu&#8221; e informe tamb&#233;m a data de falecimento — o cadastro entra como mishmar&#225;.</p>
       <form id="cadastro-form" class="cad-form" aria-label="Adicionar pessoa">
         <div class="cad-row">
           <label>Nome completo*<input id="c-nome" type="text" required autocomplete="off" maxlength="80"></label>
-          <label>Tipo*<select id="c-tipo" required><option value="aniversario">Anivers&#225;rio (nascimento)</option><option value="yahrzeit">Mishmará (falecimento)</option></select></label>
+          <label class="cad-check"><span class="chk"><input id="c-faleceu" type="checkbox"> Faleceu</span></label>
         </div>
         <div class="cad-row">
-          <label>Data de nascimento<input id="c-nasc" type="date"></label>
-          <label>Data de falecimento<input id="c-fal" type="date"></label>
+          <label>Data de nascimento*<input id="c-nasc" type="date" required></label>
+          <label id="c-fal-wrap" style="display:none">Data de falecimento*<input id="c-fal" type="date"></label>
         </div>
         <div class="cad-row">
-          <label>A data principal foi &#224; noite (depois do p&#244;r do sol)?*<select id="c-noite" required><option value="N&#227;o">N&#227;o</option><option value="Sim">Sim</option><option value="N&#227;o sei">N&#227;o sei</option></select></label>
+          <label><span id="c-noite-txt">O nascimento foi &#224; noite (depois do p&#244;r do sol)?</span>*<select id="c-noite" required><option value="N&#227;o">N&#227;o</option><option value="Sim">Sim</option><option value="N&#227;o sei">N&#227;o sei</option></select></label>
         </div>
         <div class="cad-row">
           <label>Qual &#233; a rela&#231;&#227;o com a fam&#237;lia?*<select id="c-relacao" required></select></label>
@@ -1091,19 +1094,19 @@
         var btn = document.querySelector(".cad-btn");
         status.className = "cad-status"; status.textContent = "";
         var nome = document.getElementById("c-nome").value.trim();
-        var tipo = document.getElementById("c-tipo").value;
+        var tipo = document.getElementById("c-faleceu").checked ? "yahrzeit" : "aniversario";
         var nasc = document.getElementById("c-nasc").value;
         var fal = document.getElementById("c-fal").value;
-        var data = tipo === "aniversario" ? nasc : fal;
+        var data = tipo === "yahrzeit" ? fal : nasc;
         var extraBirth = tipo === "yahrzeit" ? (nasc || null) : null;
-        var extraDeath = tipo === "aniversario" ? (fal || null) : null;
+        var extraDeath = null;
         var noite = document.getElementById("c-noite").value;
         var relacao = document.getElementById("c-relacao").value;
         var comQuem = document.getElementById("c-comquem").value;
         var senha = document.getElementById("c-senha").value;
-        if (!nome || !data || !senha) {
+        if (!nome || !nasc || !senha || (tipo === "yahrzeit" && !fal)) {
           status.classList.add("err");
-          status.textContent = tipo === "aniversario" ? "Preencha nome, data de nascimento e senha." : "Preencha nome, data de falecimento e senha.";
+          status.textContent = tipo === "yahrzeit" ? "Preencha nome, data de nascimento, data de falecimento e senha." : "Preencha nome, data de nascimento e senha.";
           return;
         }
         btn.disabled = true;
@@ -1179,6 +1182,10 @@
         renderTree();
         render();
         document.getElementById("cadastro-form").addEventListener("submit", onCadastroSubmit);
+        document.getElementById("c-faleceu").addEventListener("change", function (e) {
+          document.getElementById("c-fal-wrap").style.display = e.target.checked ? "" : "none";
+          document.getElementById("c-noite-txt").textContent = e.target.checked ? "O falecimento foi \u00e0 noite (depois do p\u00f4r do sol)?" : "O nascimento foi \u00e0 noite (depois do p\u00f4r do sol)?";
+        });
 
         document.getElementById("q").addEventListener("input", function (e) {
           state.q = e.target.value; render();
