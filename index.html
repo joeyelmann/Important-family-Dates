@@ -389,7 +389,7 @@
           ou pelo que vem a seguir.
         </p>
         <p class="add-line">
-          <a href="#cadastro">＋ Adicionar pessoa</a>
+          <a href="#cadastro" id="add-toggle" aria-expanded="false">＋ Adicionar pessoa</a>
         </p>
       </header>
       <div class="rule" aria-hidden="true"></div>
@@ -403,6 +403,7 @@
       <p class="tree-hint">Toque num nome para destacar pais, filhos e c&#244;njuge.</p>
       <div class="tree-wrap"><svg id="tree" role="img" aria-label="&#193;rvore geneal&#243;gica da fam&#237;lia"></svg></div>
 
+      <div id="cadastro-box" style="display:none">
       <h2 class="section-title" id="cadastro">Adicionar pessoa</h2>
       <p class="tree-hint">Preencha o b&#225;sico — a data hebraica &#233; calculada automaticamente e a p&#225;gina se atualiza na hora. Se a pessoa faleceu, marque &#8220;Faleceu&#8221; e informe tamb&#233;m a data de falecimento — o cadastro entra como mishmar&#225;.</p>
       <form id="cadastro-form" class="cad-form" aria-label="Adicionar pessoa">
@@ -427,6 +428,7 @@
         <button type="submit" class="cad-btn">Adicionar &#224; p&#225;gina</button>
         <p class="cad-status" id="c-status" role="status"></p>
       </form>
+      </div>
 
 
 
@@ -1182,6 +1184,14 @@
         renderTree();
         render();
         document.getElementById("cadastro-form").addEventListener("submit", onCadastroSubmit);
+        document.getElementById("add-toggle").addEventListener("click", function (e) {
+          e.preventDefault();
+          var box = document.getElementById("cadastro-box");
+          var open = box.style.display !== "none";
+          box.style.display = open ? "none" : "";
+          e.currentTarget.setAttribute("aria-expanded", open ? "false" : "true");
+          if (!open) box.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
         document.getElementById("c-faleceu").addEventListener("change", function (e) {
           document.getElementById("c-fal-wrap").style.display = e.target.checked ? "" : "none";
           document.getElementById("c-noite-txt").textContent = e.target.checked ? "O falecimento foi \u00e0 noite (depois do p\u00f4r do sol)?" : "O nascimento foi \u00e0 noite (depois do p\u00f4r do sol)?";
