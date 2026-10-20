@@ -110,6 +110,19 @@
       #tree .t-dim { opacity: .18; }
       #tree .t-hi rect { stroke: var(--gold); stroke-width: 2.6; }
 
+      /* ---------- Cadastro ---------- */
+      .cad-form { max-width: 660px; }
+      .cad-row { display: flex; gap: 14px; margin-bottom: 12px; flex-wrap: wrap; }
+      .cad-row > label { flex: 1 1 220px; display: flex; flex-direction: column; gap: 6px; font-size: 14px; font-weight: 600; }
+      .cad-form input, .cad-form select { padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; font-size: 15px; font-family: inherit; background: #fff; color: inherit; }
+      .cad-btn { padding: 10px 26px; border: 1px solid var(--gold); border-radius: 999px; background: transparent; color: inherit; font-size: 15px; font-weight: 700; cursor: pointer; font-family: inherit; }
+      .cad-btn:hover:not(:disabled) { background: #faf6ec; }
+      .cad-btn:disabled { opacity: .55; cursor: default; }
+      .cad-status { font-size: 14px; min-height: 22px; margin: 10px 0 0; }
+      .cad-status.ok { color: #2e7d32; }
+      .cad-status.err { color: #b3261e; }
+
+
       h2.section-title {
         font-family: "Lora", Georgia, serif;
         font-size: 21px;
@@ -373,7 +386,7 @@
           ou pelo que vem a seguir.
         </p>
         <p class="add-line">
-          <a href="https://docs.google.com/forms/d/e/1FAIpQLSdG5m1fQxa7XmWAR7ZvMtjTAHDErzA9EE71xyj5Rdn6htWE6A/viewform" target="_blank" rel="noopener">＋ Adicionar pessoa</a>
+          <a href="#cadastro">＋ Adicionar pessoa</a>
         </p>
       </header>
       <div class="rule" aria-hidden="true"></div>
@@ -386,6 +399,29 @@
       <h2 class="section-title">&#193;rvore da fam&#237;lia</h2>
       <p class="tree-hint">Toque num nome para destacar pais, filhos e c&#244;njuge.</p>
       <div class="tree-wrap"><svg id="tree" role="img" aria-label="&#193;rvore geneal&#243;gica da fam&#237;lia"></svg></div>
+
+      <h2 class="section-title" id="cadastro">Adicionar pessoa</h2>
+      <p class="tree-hint">Preencha o b&#225;sico — a data hebraica &#233; calculada automaticamente e a p&#225;gina se atualiza na hora.</p>
+      <form id="cadastro-form" class="cad-form" aria-label="Adicionar pessoa">
+        <div class="cad-row">
+          <label>Nome completo*<input id="c-nome" type="text" required autocomplete="off" maxlength="80"></label>
+          <label>Tipo*<select id="c-tipo" required><option value="aniversario">Anivers&#225;rio (nascimento)</option><option value="yahrzeit">Yahrzeit (falecimento)</option></select></label>
+        </div>
+        <div class="cad-row">
+          <label>Data de nascimento (ou de falecimento)*<input id="c-data" type="date" required></label>
+          <label>Foi &#224; noite (depois do p&#244;r do sol)?*<select id="c-noite" required><option value="N&#227;o">N&#227;o</option><option value="Sim">Sim</option><option value="N&#227;o sei">N&#227;o sei</option></select></label>
+        </div>
+        <div class="cad-row">
+          <label>Qual &#233; a rela&#231;&#227;o com a fam&#237;lia?*<select id="c-relacao" required></select></label>
+          <label>Com quem?*<select id="c-comquem" required></select></label>
+        </div>
+        <div class="cad-row">
+          <label>Senha da fam&#237;lia*<input id="c-senha" type="password" required autocomplete="off" placeholder="Pergunte ao Joey"></label>
+        </div>
+        <button type="submit" class="cad-btn">Adicionar &#224; p&#225;gina</button>
+        <p class="cad-status" id="c-status" role="status"></p>
+      </form>
+
 
 
       <h2 class="section-title">Consultar as datas</h2>
@@ -476,7 +512,39 @@
       "use strict";
 
       /* Dados fixos da família (conferidos em 19/10/2026; fonte: Hebcal para as conversões). */
-      var PEOPLE = [
+      /* ---------- Supabase (banco de dados) ---------- */
+      var SUPABASE_URL = "https://dsbqfdmwgsxwhvqtmwqi.supabase.co";
+      var SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRzYnFmZG13Z3N4d2h2cXRtd3FpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI0NTk2MDEsImV4cCI6MjEwODAzNTYwMX0.mXdT9daKK6_3Olhy2bWVLiY0F9cJN1mJkRqttpSwbRo";
+      var BYNAME = {}, SPOUSES = {};
+      function sbHeaders() {
+        return { "apikey": SUPABASE_ANON, "Authorization": "Bearer " + SUPABASE_ANON, "Content-Type": "application/json" };
+      }
+      function rowToPerson(r) {
+        return { name: r.name, relation: r.relation || "", type: r.type, greg: r.greg, night: !!r.night,
+          hebrew: r.hebrew, hebMonth: r.heb_month, hebDay: r.heb_day, nextHeb: r.next_heb,
+          parents: r.parents || [], spouses: r.spouses || [], note: r.note || "" };
+      }
+      async function loadMembers() {
+        try {
+          var res = await fetch(SUPABASE_URL + "/rest/v1/members?select=*&order=id", { headers: sbHeaders() });
+          if (!res.ok) throw new Error("http " + res.status);
+          var rows = await res.json();
+          if (!rows || !rows.length) throw new Error("sem dados");
+          PEOPLE = rows.map(rowToPerson);
+        } catch (e) { PEOPLE = SEED_PEOPLE.slice(); }
+        buildGlobals();
+      }
+      function buildGlobals() {
+        BYNAME = {}; SPOUSES = {};
+        PEOPLE.forEach(function (p) { BYNAME[p.name] = p; });
+        PEOPLE.forEach(function (p) {
+          var ps = (p.parents || []).filter(function (n) { return BYNAME[n]; });
+          if (ps.length === 2) { SPOUSES[ps[0]] = ps[1]; SPOUSES[ps[1]] = ps[0]; }
+          (p.spouses || []).forEach(function (n) { if (BYNAME[n]) { SPOUSES[p.name] = n; SPOUSES[n] = p.name; } });
+        });
+      }
+
+      var SEED_PEOPLE = [
         { name: "Isaac Joseph El Mann", relation: "Pai", type: "aniversario",
           greg: "1950-07-17", night: false, hebrew: "3 de Av", hebMonth: "Av", hebDay: 3,
           nextHeb: "2027-08-06" },
@@ -519,6 +587,7 @@
           greg: "2022-05-04", night: true, hebrew: "4 de Iyyar", hebMonth: "Iyyar", hebDay: 4,
           nextHeb: "2027-05-11" }
       ];
+      var PEOPLE = [];
 
       var GREG_MONTHS = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
       var HEB_ORDER = ["Tishrei","Cheshvan","Kislev","Tevet","Shevat","Adar I","Adar II","Nisan","Iyyar","Sivan","Tammuz","Av","Elul"];
@@ -903,6 +972,131 @@
         });
       }
 
+
+      /* ---------- Hebcal (conversão de datas) ---------- */
+      async function hebGet(url) {
+        var sep = url.indexOf("?") >= 0 ? "&" : "?";
+        var r = await fetch(url + sep + "cb=" + Date.now());
+        if (!r.ok) throw new Error("Hebcal respondeu " + r.status);
+        var j = await r.json();
+        if (j.error) throw new Error("Hebcal: " + j.error);
+        return j;
+      }
+      async function hebConvert(y, m, d, night) {
+        if (night) {
+          var dt = new Date(y, m - 1, d); dt.setDate(dt.getDate() + 1);
+          y = dt.getFullYear(); m = dt.getMonth() + 1; d = dt.getDate();
+        }
+        var j = await hebGet("https://www.hebcal.com/converter?cfg=json&g2h=1&gy=" + y + "&gm=" + m + "&gd=" + d);
+        return { day: j.hd, month: j.hm };
+      }
+      async function h2gSafe(hy, hm, hd) {
+        var mlist = hm === "Adar I" ? ["Adar I", "Adar"] : [hm];
+        for (var i = 0; i < mlist.length; i++) {
+          try {
+            var j = await hebGet("https://www.hebcal.com/converter?cfg=json&h2g=1&hy=" + hy + "&hm=" + encodeURIComponent(mlist[i]) + "&hd=" + hd);
+            if (j.gy) return j.gy + "-" + String(j.gm).padStart(2, "0") + "-" + String(j.gd).padStart(2, "0");
+          } catch (e) {}
+        }
+        return null;
+      }
+      async function hebNext(hd, hm) {
+        var t = await hebGet("https://www.hebcal.com/converter?cfg=json");
+        var todayISO = t.gy + "-" + String(t.gm).padStart(2, "0") + "-" + String(t.gd).padStart(2, "0");
+        var d1 = await h2gSafe(t.hy, hm, hd);
+        if (d1 && d1 >= todayISO) return d1;
+        var d2 = await h2gSafe(t.hy + 1, hm, hd);
+        if (d2) return d2;
+        throw new Error("não consegui calcular a próxima data hebraica");
+      }
+
+      /* ---------- Cadastro na página ---------- */
+      var RELACOES = ["Filho","Filha","Pai","Mãe","Irmão","Irmã","Esposo","Esposa","Avô","Avó","Neto","Neta","Tio","Tia","Sobrinho","Sobrinha","Primo","Prima","Sogro","Sogra","Cunhado","Cunhada","Outro"];
+      function populateComQuem() {
+        var sel = document.getElementById("c-comquem");
+        if (sel) {
+          var cur = sel.value;
+          sel.innerHTML = "";
+          PEOPLE.slice().sort(function (a, b) { return a.name.localeCompare(b.name, "pt-BR"); }).forEach(function (p) {
+            var o = document.createElement("option"); o.value = p.name; o.textContent = p.name; sel.appendChild(o);
+          });
+          if (cur && BYNAME[cur]) sel.value = cur;
+        }
+        var rs = document.getElementById("c-relacao");
+        if (rs && !rs.options.length) RELACOES.forEach(function (r) {
+          var o = document.createElement("option"); o.value = r; o.textContent = r; rs.appendChild(o);
+        });
+      }
+      function computeLink(relacao, comQuem) {
+        var X = BYNAME[comQuem];
+        var first = comQuem.split(" ")[0];
+        var out = { parents: [], spouses: [], linkParentOf: null, linkSpouseOf: null, relationLabel: relacao + " de " + first };
+        if (!X) return out;
+        var sp = SPOUSES[comQuem];
+        switch (relacao) {
+          case "Filho": case "Filha":
+            out.parents = [comQuem]; if (sp) out.parents.push(sp); break;
+          case "Pai": case "Mãe":
+            out.linkParentOf = comQuem; break;
+          case "Irmão": case "Irmã":
+            out.parents = (X.parents || []).slice(); break;
+          case "Esposo": case "Esposa":
+            out.spouses = [comQuem]; out.linkSpouseOf = comQuem; break;
+          case "Sogro": case "Sogra":
+            if (sp) out.linkParentOf = sp; break;
+          case "Cunhado": case "Cunhada":
+            if (sp && BYNAME[sp]) out.parents = (BYNAME[sp].parents || []).slice(); break;
+          default: break;
+        }
+        return out;
+      }
+      function sbErrorText(t) {
+        var m = t;
+        try { var j = JSON.parse(t); m = j.message || j.hint || t; } catch (e) {}
+        if (/nao autorizado/i.test(m)) return "Senha da família incorreta.";
+        if (/limite/i.test(m)) return "Muitos cadastros seguidos — aguarde uma hora.";
+        return String(m).slice(0, 140);
+      }
+      async function onCadastroSubmit(ev) {
+        ev.preventDefault();
+        var status = document.getElementById("c-status");
+        var btn = document.querySelector(".cad-btn");
+        status.className = "cad-status"; status.textContent = "";
+        var nome = document.getElementById("c-nome").value.trim();
+        var tipo = document.getElementById("c-tipo").value;
+        var data = document.getElementById("c-data").value;
+        var noite = document.getElementById("c-noite").value;
+        var relacao = document.getElementById("c-relacao").value;
+        var comQuem = document.getElementById("c-comquem").value;
+        var senha = document.getElementById("c-senha").value;
+        if (!nome || !data || !senha) {
+          status.classList.add("err"); status.textContent = "Preencha nome, data e senha.";
+          return;
+        }
+        btn.disabled = true;
+        try {
+          status.textContent = "Calculando a data hebraica…";
+          var parts = data.split("-").map(Number);
+          var h = await hebConvert(parts[0], parts[1], parts[2], noite === "Sim");
+          var nextHeb = await hebNext(h.day, h.month);
+          var link = computeLink(relacao, comQuem);
+          status.textContent = "Salvando…";
+          var body = { p_name: nome, p_relation: link.relationLabel, p_type: tipo, p_greg: data,
+            p_night: noite === "Sim", p_hebrew: h.day + " de " + h.month, p_heb_month: h.month, p_heb_day: h.day,
+            p_next_heb: nextHeb, p_parents: link.parents, p_spouses: link.spouses, p_note: "",
+            p_passphrase: senha, p_link_parent_of: link.linkParentOf, p_link_spouse_of: link.linkSpouseOf };
+          var res = await fetch(SUPABASE_URL + "/rest/v1/rpc/add_member", { method: "POST", headers: sbHeaders(), body: JSON.stringify(body) });
+          if (!res.ok) throw new Error(sbErrorText(await res.text()));
+          status.classList.add("ok");
+          status.textContent = "✓ " + nome + " adicionado (" + h.day + " de " + h.month + "). Recarregando a página…";
+          setTimeout(function () { location.reload(); }, 1600);
+        } catch (err) {
+          status.classList.add("err");
+          status.textContent = "Não foi possível salvar: " + (err.message || err);
+          btn.disabled = false;
+        }
+      }
+
       function render() {
         var list = filtered();
         var count = document.getElementById("result-count");
@@ -936,11 +1130,16 @@
         });
       }
 
-      function init() {
+      async function init() {
+        var up0 = document.getElementById("upcoming");
+        if (up0) up0.innerHTML = '<p class="tree-hint">Carregando dados…</p>';
+        await loadMembers();
         fillSelects();
+        populateComQuem();
         renderUpcoming();
         renderTree();
         render();
+        document.getElementById("cadastro-form").addEventListener("submit", onCadastroSubmit);
 
         document.getElementById("q").addEventListener("input", function (e) {
           state.q = e.target.value; render();
