@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="color-scheme" content="light dark" />
     <link rel="icon" href="data:," />
-    <title>Aniversários e Yahrzeits da Família</title>
+    <title>Aniversários e Meldados da Família</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -379,9 +379,9 @@
   <body>
     <main class="wrap">
       <header class="page-head">
-        <h1>Aniversários e Yahrzeits da Família</h1>
+        <h1>Aniversários e Meldados da Família</h1>
         <p>
-          Todas as datas da família em um só lugar — aniversários e yahrzeits com o dia no
+          Todas as datas da família em um só lugar — aniversários e meldados com o dia no
           calendário gregoriano e no calendário hebraico, para consultar por pessoa, por mês
           ou pelo que vem a seguir.
         </p>
@@ -401,15 +401,18 @@
       <div class="tree-wrap"><svg id="tree" role="img" aria-label="&#193;rvore geneal&#243;gica da fam&#237;lia"></svg></div>
 
       <h2 class="section-title" id="cadastro">Adicionar pessoa</h2>
-      <p class="tree-hint">Preencha o b&#225;sico — a data hebraica &#233; calculada automaticamente e a p&#225;gina se atualiza na hora.</p>
+      <p class="tree-hint">Preencha o b&#225;sico — a data hebraica &#233; calculada automaticamente e a p&#225;gina se atualiza na hora. Para anivers&#225;rio, a data principal &#233; o nascimento; para meldado, o falecimento — a outra data &#233; opcional.</p>
       <form id="cadastro-form" class="cad-form" aria-label="Adicionar pessoa">
         <div class="cad-row">
           <label>Nome completo*<input id="c-nome" type="text" required autocomplete="off" maxlength="80"></label>
-          <label>Tipo*<select id="c-tipo" required><option value="aniversario">Anivers&#225;rio (nascimento)</option><option value="yahrzeit">Yahrzeit (falecimento)</option></select></label>
+          <label>Tipo*<select id="c-tipo" required><option value="aniversario">Anivers&#225;rio (nascimento)</option><option value="yahrzeit">Meldado (falecimento)</option></select></label>
         </div>
         <div class="cad-row">
-          <label>Data de nascimento (ou de falecimento)*<input id="c-data" type="date" required></label>
-          <label>Foi &#224; noite (depois do p&#244;r do sol)?*<select id="c-noite" required><option value="N&#227;o">N&#227;o</option><option value="Sim">Sim</option><option value="N&#227;o sei">N&#227;o sei</option></select></label>
+          <label>Data de nascimento<input id="c-nasc" type="date"></label>
+          <label>Data de falecimento<input id="c-fal" type="date"></label>
+        </div>
+        <div class="cad-row">
+          <label>A data principal foi &#224; noite (depois do p&#244;r do sol)?*<select id="c-noite" required><option value="N&#227;o">N&#227;o</option><option value="Sim">Sim</option><option value="N&#227;o sei">N&#227;o sei</option></select></label>
         </div>
         <div class="cad-row">
           <label>Qual &#233; a rela&#231;&#227;o com a fam&#237;lia?*<select id="c-relacao" required></select></label>
@@ -434,7 +437,7 @@
           <div class="seg" role="group" aria-label="Tipo de data" id="type-seg">
             <button type="button" data-type="todos" aria-pressed="true">Todas</button>
             <button type="button" data-type="aniversario" aria-pressed="false">Aniversários</button>
-            <button type="button" data-type="yahrzeit" aria-pressed="false">Yahrzeits</button>
+            <button type="button" data-type="yahrzeit" aria-pressed="false">Meldados</button>
           </div>
         </div>
         <div class="row">
@@ -497,7 +500,7 @@
           <li><strong>Katia — 10 de Tevet:</strong> é dia de jejum (Asara B'Tevet).</li>
           <li><strong>Breno — 11 de Tishrei:</strong> o dia logo após o Yom Kipur (10 de Tishrei).</li>
           <li><strong>Rony — 13 de Adar I:</strong> ele nasceu em ano hebraico bissexto; em anos comuns, a data correspondente cai em Adar.</li>
-          <li><strong>Yahrzeit:</strong> é a data de falecimento lembrada a cada ano no calendário hebraico; diz-se “yahrzeit de N anos”, nunca “aniversário”.</li>
+          <li><strong>Meldado:</strong> é a data de falecimento lembrada a cada ano no calendário hebraico (o nome do costume Edot Mizrach; entre ashkenazim, yahrzeit); diz-se “meldado de N anos”, nunca “aniversário”.</li>
         </ul>
       </section>
 
@@ -522,7 +525,8 @@
       function rowToPerson(r) {
         return { name: r.name, relation: r.relation || "", type: r.type, greg: r.greg, night: !!r.night,
           hebrew: r.hebrew, hebMonth: r.heb_month, hebDay: r.heb_day, nextHeb: r.next_heb,
-          parents: r.parents || [], spouses: r.spouses || [], note: r.note || "" };
+          parents: r.parents || [], spouses: r.spouses || [], note: r.note || "",
+          birth: r.birth || null, death: r.death || null };
       }
       async function loadMembers() {
         try {
@@ -541,6 +545,10 @@
           var ps = (p.parents || []).filter(function (n) { return BYNAME[n]; });
           if (ps.length === 2) { SPOUSES[ps[0]] = ps[1]; SPOUSES[ps[1]] = ps[0]; }
           (p.spouses || []).forEach(function (n) { if (BYNAME[n]) { SPOUSES[p.name] = n; SPOUSES[n] = p.name; } });
+        });
+        PEOPLE.forEach(function (p) {
+          if (!p.birth && p.type === "aniversario") p.birth = p.greg;
+          if (!p.death && p.type === "yahrzeit") p.death = p.greg;
         });
       }
 
@@ -649,7 +657,7 @@
               sub: fmtDate(nh) + " · " + WEEKDAYS[nh.getDay()] });
           } else {
             evs.push({ person: p, kind: "heb", date: nh, yahrzeit: true,
-              label: "Yahrzeit de " + (nh.getFullYear() - parseISO(p.greg).getFullYear()) + " anos — " + p.hebrew,
+              label: "Meldado de " + (nh.getFullYear() - parseISO(p.greg).getFullYear()) + " anos — " + p.hebrew,
               sub: fmtDate(nh) + " · " + WEEKDAYS[nh.getDay()] });
           }
         });
@@ -733,21 +741,23 @@
         var nh = parseISO(p.nextHeb);
         var isY = p.type === "yahrzeit";
         var chips = "";
-        if (isY) chips += '<span class="chip yahrzeit">' + FLAME + "Yahrzeit</span>";
+        if (isY) chips += '<span class="chip yahrzeit">' + FLAME + "Meldado</span>";
         else chips += '<span class="chip">' + CAKE + "Aniversário</span>";
         if (p.night) chips += '<span class="chip neutral">à noite</span>';
 
         var facts = "";
         if (isY) {
+          if (p.birth) { var pb = parseISO(p.birth); facts += fact("Nascimento", fmtShort(pb) + "<small>" + fmtDate(pb) + "</small>"); }
           facts += fact("Falecimento", fmtShort(g) + "<small>" + fmtDate(g) + "</small>");
-          facts += fact("Yahrzeit (data hebraica)", esc(p.hebrew));
-          facts += fact("Próximo yahrzeit",
-            fmtShort(nh) + "<small>" + fmtDate(nh) + " · yahrzeit de " +
+          facts += fact("Meldado (data hebraica)", esc(p.hebrew));
+          facts += fact("Próximo meldado",
+            fmtShort(nh) + "<small>" + fmtDate(nh) + " · meldado de " +
             (nh.getFullYear() - g.getFullYear()) + " anos" +
             (relDays(nh) ? " · " + relDays(nh).toLowerCase() : "") + "</small>");
         } else {
           var ng = nextAnnual(p);
           facts += fact("Nascimento", fmtShort(g) + "<small>" + fmtDate(g) + "</small>");
+          if (p.death) { var pd = parseISO(p.death); facts += fact("Falecimento", fmtShort(pd) + "<small>" + fmtDate(pd) + "</small>"); }
           facts += fact("Data hebraica", esc(p.hebrew));
           facts += fact("Próximo aniversário",
             fmtShort(ng) + "<small>" + fmtDate(ng) + " · faz " +
@@ -787,7 +797,7 @@
             html += "<ul>" + items.map(function (p) {
               var g = parseISO(p.greg);
               var det = p.type === "yahrzeit"
-                ? "Yahrzeit · " + p.hebrew
+                ? "Meldado · " + p.hebrew
                 : p.hebrew + (p.night ? " · à noite" : "");
               return '<li class="' + (p.type === "yahrzeit" ? "yahrzeit" : "") + '">' +
                 '<span class="day">' + g.getDate() + "</span>" +
@@ -810,7 +820,7 @@
           html += '<div class="month-box"><h3>' + hm + "</h3><ul>" +
             items.map(function (p) {
               var g = parseISO(p.greg);
-              var det = (p.type === "yahrzeit" ? "Yahrzeit · falecimento em " : "Nasceu em ") +
+              var det = (p.type === "yahrzeit" ? "Meldado · falecimento em " : "Nasceu em ") +
                 fmtShort(g) + (p.night ? " · à noite" : "");
               return '<li class="' + (p.type === "yahrzeit" ? "yahrzeit" : "") + '">' +
                 '<span class="day">' + p.hebDay + "</span>" +
@@ -850,6 +860,23 @@
           });
         }
         PEOPLE.forEach(function (p) { if (gen[p.name] === undefined) gen[p.name] = 0; });
+        // Cônjuges ficam na mesma geração (um ao lado do outro); filhos, abaixo dos pais.
+        changed = true; guard = 0;
+        while (changed && guard++ < 60) {
+          changed = false;
+          PEOPLE.forEach(function (p) {
+            var s = spouse[p.name];
+            if (s && gen[s] !== gen[p.name]) {
+              var mx = Math.max(gen[s], gen[p.name]);
+              gen[p.name] = mx; gen[s] = mx; changed = true;
+            }
+            var ps = (p.parents || []).filter(function (n) { return byName[n]; });
+            if (ps.length) {
+              var need = Math.max.apply(null, ps.map(function (n) { return gen[n]; })) + 1;
+              if (gen[p.name] < need) { gen[p.name] = need; changed = true; }
+            }
+          });
+        }
         return { byName: byName, spouse: spouse, gen: gen };
       }
       function wrapName(name) {
@@ -944,7 +971,8 @@
           });
           var sub = el("text", { "class": "t-sub", x: cx(p), y: pos[p.name].y + CH - 9, "text-anchor": "middle" });
           var yr = parseISO(p.greg).getFullYear();
-          sub.textContent = p.type === "yahrzeit" ? "yahrzeit \u00B7 " + yr : "" + yr;
+          if (p.birth && p.death) sub.textContent = parseISO(p.birth).getFullYear() + " \u2013 " + parseISO(p.death).getFullYear();
+          else sub.textContent = p.type === "yahrzeit" ? "meldado \u00B7 " + yr : "" + yr;
           g.appendChild(sub);
           g.addEventListener("click", function (ev) { ev.stopPropagation(); treeSelect(p.name === TREE_SEL ? null : p.name); });
           svg.appendChild(g);
@@ -1064,13 +1092,18 @@
         status.className = "cad-status"; status.textContent = "";
         var nome = document.getElementById("c-nome").value.trim();
         var tipo = document.getElementById("c-tipo").value;
-        var data = document.getElementById("c-data").value;
+        var nasc = document.getElementById("c-nasc").value;
+        var fal = document.getElementById("c-fal").value;
+        var data = tipo === "aniversario" ? nasc : fal;
+        var extraBirth = tipo === "yahrzeit" ? (nasc || null) : null;
+        var extraDeath = tipo === "aniversario" ? (fal || null) : null;
         var noite = document.getElementById("c-noite").value;
         var relacao = document.getElementById("c-relacao").value;
         var comQuem = document.getElementById("c-comquem").value;
         var senha = document.getElementById("c-senha").value;
         if (!nome || !data || !senha) {
-          status.classList.add("err"); status.textContent = "Preencha nome, data e senha.";
+          status.classList.add("err");
+          status.textContent = tipo === "aniversario" ? "Preencha nome, data de nascimento e senha." : "Preencha nome, data de falecimento e senha.";
           return;
         }
         btn.disabled = true;
@@ -1087,6 +1120,12 @@
             p_passphrase: senha, p_link_parent_of: link.linkParentOf, p_link_spouse_of: link.linkSpouseOf };
           var res = await fetch(SUPABASE_URL + "/rest/v1/rpc/add_member", { method: "POST", headers: sbHeaders(), body: JSON.stringify(body) });
           if (!res.ok) throw new Error(sbErrorText(await res.text()));
+          var newId = await res.json();
+          if (extraBirth || extraDeath) {
+            try {
+              await fetch(SUPABASE_URL + "/rest/v1/rpc/set_extra_dates", { method: "POST", headers: sbHeaders(), body: JSON.stringify({ p_id: newId, p_birth: extraBirth, p_death: extraDeath, p_passphrase: senha }) });
+            } catch (e2) {}
+          }
           status.classList.add("ok");
           status.textContent = "✓ " + nome + " adicionado (" + h.day + " de " + h.month + "). Recarregando a página…";
           setTimeout(function () { location.reload(); }, 1600);
@@ -1105,7 +1144,7 @@
         var y = list.length - b;
         var parts = [];
         if (b) parts.push(b + (b === 1 ? " aniversário" : " aniversários"));
-        if (y) parts.push(y + (y === 1 ? " yahrzeit" : " yahrzeits"));
+        if (y) parts.push(y + (y === 1 ? " meldado" : " meldados"));
         count.textContent = list.length ? parts.join(" · ") : "";
 
         document.getElementById("view-lista").classList.toggle("hidden", state.view !== "lista");
