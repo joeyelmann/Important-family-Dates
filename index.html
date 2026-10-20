@@ -111,6 +111,21 @@
       .tree-tools { position: absolute; top: 8px; right: 8px; display: flex; gap: 6px; z-index: 3; }
       .tree-tools button { font: inherit; font-size: 15px; line-height: 1; padding: 7px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; box-shadow: var(--shadow); }
       .tree-tools button:hover { border-color: var(--gold); }
+      .gate { position: fixed; inset: 0; z-index: 100; background: var(--bg); display: flex; align-items: center; justify-content: center; padding: 18px; }
+      .gate-box { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); width: min(370px, 100%); padding: 28px 26px; text-align: center; display: flex; flex-direction: column; gap: 10px; }
+      .gate-ico { font-size: 34px; }
+      .gate-box h2 { font-family: "Lora", Georgia, serif; font-size: 22px; margin: 0; }
+      .gate-txt { color: var(--ink-soft); margin: 0; }
+      .gate-box input { padding: 10px 12px; border: 1px solid var(--line); border-radius: 9px; font: inherit; background: #fff; text-align: center; }
+      .gate-btn { padding: 11px; border: none; border-radius: 9px; background: var(--gold); color: #fff; font: inherit; font-weight: 700; cursor: pointer; }
+      .gate-err { color: #b3261e; margin: 0; font-size: 14px; }
+      .gate-note { color: var(--ink-faint); font-size: 12.5px; margin: 0; }
+      .mode-line { display: flex; gap: 10px; align-items: center; justify-content: center; margin-top: 10px; }
+      .mode-chip { font-size: 12px; font-weight: 700; letter-spacing: .03em; padding: 3px 10px; border-radius: 999px; border: 1px solid var(--line); color: var(--ink-soft); background: var(--surface); }
+      .mode-btn { background: none; border: none; color: var(--gold-strong); text-decoration: underline; cursor: pointer; font: inherit; font-size: 13.5px; padding: 2px; }
+      body.mode-view #add-toggle { display: none; }
+      body.mode-view #cadastro-box { display: none !important; }
+      body.mode-view .edit-btn { display: none !important; }
       .person-pop { position: absolute; z-index: 6; width: 252px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow); padding: 12px 14px 11px; }
       .person-pop[hidden] { display: none; }
       .pp-close { position: absolute; top: 5px; right: 7px; border: none; background: none; color: var(--ink-faint); font-size: 17px; line-height: 1; cursor: pointer; padding: 2px 4px; }
@@ -411,7 +426,18 @@
     </style>
   </head>
   <body>
-    <main class="wrap">
+    <div class="gate" id="gate">
+      <form class="gate-box" id="gate-form">
+        <div class="gate-ico" aria-hidden="true">🌳</div>
+        <h2>Árvore e Datas da Família</h2>
+        <p class="gate-txt">Página só para a família. Digite a senha para entrar:</p>
+        <input id="gate-pass" type="password" autocomplete="off" placeholder="Senha da família">
+        <button type="submit" class="gate-btn">Entrar</button>
+        <p class="gate-err" id="gate-err" style="display:none">Senha incorreta — tente de novo.</p>
+        <p class="gate-note">Senha de visualização: só consultar. Senha de editor: cadastrar e corrigir os dados.</p>
+      </form>
+    </div>
+    <main class="wrap" id="app" style="display:none">
       <header class="page-head">
         <h1>Árvore e Datas da Família</h1>
         <p>
@@ -421,6 +447,11 @@
         </p>
         <p class="add-line">
           <a href="#cadastro" id="add-toggle" aria-expanded="false">＋ Adicionar pessoa</a>
+        </p>
+        <p class="mode-line">
+          <span class="mode-chip" id="mode-chip"></span>
+          <button type="button" class="mode-btn" id="mode-upgrade" style="display:none">Entrar como editor</button>
+          <button type="button" class="mode-btn" id="mode-logout">Sair</button>
         </p>
       </header>
       <div class="rule" aria-hidden="true"></div>
@@ -455,8 +486,8 @@
           <label class="cad-check"><span class="chk"><input id="c-faleceu" type="checkbox"> Faleceu</span></label>
         </div>
         <div class="cad-row">
-          <label>Data de nascimento*<input id="c-nasc" type="date" required></label>
-          <label id="c-fal-wrap" style="display:none">Data de falecimento*<input id="c-fal" type="date"></label>
+          <label>Data de nascimento (opcional)<input id="c-nasc" type="date"></label>
+          <label id="c-fal-wrap" style="display:none">Data de falecimento (opcional)<input id="c-fal" type="date"></label>
         </div>
         <div class="cad-row">
           <label>Data de casamento (opcional)<input id="c-casamento" type="date"></label>
@@ -474,9 +505,6 @@
         <div class="cad-row" id="c-link-row">
           <label>Qual &#233; a rela&#231;&#227;o com a fam&#237;lia?*<select id="c-relacao" required></select></label>
           <label>Com quem?*<select id="c-comquem" required></select></label>
-        </div>
-        <div class="cad-row">
-          <label>Senha da fam&#237;lia*<input id="c-senha" type="password" required autocomplete="off" placeholder="Pergunte ao Joey"></label>
         </div>
         <button type="submit" class="cad-btn" id="c-submit">Adicionar &#224; p&#225;gina</button>
         <p class="cad-status" id="c-status" role="status"></p>
@@ -577,12 +605,13 @@
       var SUPABASE_URL = "https://dsbqfdmwgsxwhvqtmwqi.supabase.co";
       var SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRzYnFmZG13Z3N4d2h2cXRtd3FpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI0NTk2MDEsImV4cCI6MjEwODAzNTYwMX0.mXdT9daKK6_3Olhy2bWVLiY0F9cJN1mJkRqttpSwbRo";
       var BYNAME = {}, SPOUSES = {};
+      var FAMILY_PASS = "elmann"; // senha interna das funções de escrita do banco (a entrada na página é pela trava)
       function sbHeaders() {
         return { "apikey": SUPABASE_ANON, "Authorization": "Bearer " + SUPABASE_ANON, "Content-Type": "application/json" };
       }
       function rowToPerson(r) {
-        return { id: r.id, name: r.name, relation: r.relation || "", type: r.type, greg: r.greg, night: !!r.night,
-          hebrew: r.hebrew, hebMonth: r.heb_month, hebDay: r.heb_day, nextHeb: r.next_heb,
+        return { id: r.id, name: r.name, relation: r.relation || "", type: r.type, greg: r.greg || null, night: !!r.night,
+          hebrew: r.hebrew || "", hebMonth: r.heb_month || "", hebDay: r.heb_day || null, nextHeb: r.next_heb && r.next_heb < "9000-01-01" ? r.next_heb : null,
           parents: r.parents || [], spouses: r.spouses || [], note: r.note || "",
           birth: r.birth || null, death: r.death || null, wedding: r.wedding || null, bio: r.bio || "", birthCity: r.birth_city || "" };
       }
@@ -660,6 +689,7 @@
       var WEEKDAYS = ["domingo","segunda-feira","terça-feira","quarta-feira","quinta-feira","sexta-feira","sábado"];
 
       function parseISO(s) {
+        if (!s) return null;
         var p = s.split("-");
         return new Date(+p[0], +p[1] - 1, +p[2]);
       }
@@ -704,18 +734,20 @@
       function buildEvents() {
         var evs = [];
         PEOPLE.forEach(function (p) {
-          var nh = parseISO(p.nextHeb);
+          var nh = p.nextHeb ? parseISO(p.nextHeb) : null;
           if (p.type === "aniversario") {
-            var ng = nextAnnual(p);
-            evs.push({ person: p, kind: "greg", date: ng,
-              label: "Aniversário — " + (ng.getFullYear() - parseISO(p.greg).getFullYear()) + " anos",
-              sub: fmtDate(ng) + " · " + WEEKDAYS[ng.getDay()] + " · " + p.hebrew });
-            evs.push({ person: p, kind: "heb", date: nh,
+            if (p.greg) {
+              var ng = nextAnnual(p);
+              evs.push({ person: p, kind: "greg", date: ng,
+                label: "Aniversário — " + (ng.getFullYear() - parseISO(p.greg).getFullYear()) + " anos",
+                sub: fmtDate(ng) + " · " + WEEKDAYS[ng.getDay()] + (p.hebrew ? " · " + p.hebrew : "") });
+            }
+            if (nh) evs.push({ person: p, kind: "heb", date: nh,
               label: "Aniversário hebraico — " + p.hebrew,
               sub: fmtDate(nh) + " · " + WEEKDAYS[nh.getDay()] });
-          } else {
+          } else if (nh) {
             evs.push({ person: p, kind: "heb", date: nh, yahrzeit: true,
-              label: "Mishmará de " + (nh.getFullYear() - parseISO(p.greg).getFullYear()) + " anos — " + p.hebrew,
+              label: p.greg ? "Mishmará de " + (nh.getFullYear() - parseISO(p.greg).getFullYear()) + " anos — " + p.hebrew : "Mishmará — " + p.hebrew,
               sub: fmtDate(nh) + " · " + WEEKDAYS[nh.getDay()] });
           }
         });
@@ -766,7 +798,7 @@
         var q = norm(state.q.trim());
         var list = PEOPLE.filter(function (p) {
           if (state.type !== "todos" && p.type !== state.type) return false;
-          if (state.month && parseISO(p.greg).getMonth() + 1 !== +state.month) return false;
+          if (state.month && (!p.greg || parseISO(p.greg).getMonth() + 1 !== +state.month)) return false;
           if (state.hebMonth && p.hebMonth !== state.hebMonth) return false;
           if (state.person && p.name !== state.person) return false;
           if (q && norm(p.name).indexOf(q) === -1) return false;
@@ -776,17 +808,20 @@
           list.sort(function (a, b) { return a.name.localeCompare(b.name, "pt-BR"); });
         } else if (state.sort === "mes") {
           list.sort(function (a, b) {
-            var da = parseISO(a.greg), db = parseISO(b.greg);
+            var da = a.greg ? parseISO(a.greg) : null, db = b.greg ? parseISO(b.greg) : null;
+            if (!da && !db) return a.name.localeCompare(b.name, "pt-BR");
+            if (!da) return 1;
+            if (!db) return -1;
             return (da.getMonth() - db.getMonth()) || (da.getDate() - db.getDate()) || a.name.localeCompare(b.name, "pt-BR");
           });
         } else {
-          list.sort(function (a, b) {
-            var ea = Math.min(daysUntil(nextAnnual(a)), daysUntil(parseISO(a.nextHeb)));
-            var eb = Math.min(daysUntil(nextAnnual(b)), daysUntil(parseISO(b.nextHeb)));
-            if (a.type === "yahrzeit") ea = daysUntil(parseISO(a.nextHeb));
-            if (b.type === "yahrzeit") eb = daysUntil(parseISO(b.nextHeb));
-            return ea - eb;
-          });
+          function evDays(p) {
+            var ds = [];
+            if (p.type !== "yahrzeit" && p.greg) ds.push(daysUntil(nextAnnual(p)));
+            if (p.nextHeb) ds.push(daysUntil(parseISO(p.nextHeb)));
+            return ds.length ? Math.min.apply(null, ds) : 1e9;
+          }
+          list.sort(function (a, b) { return evDays(a) - evDays(b); });
         }
         return list;
       }
@@ -806,27 +841,31 @@
         var facts = "";
         if (isY) {
           if (p.birth) { var pb = parseISO(p.birth); facts += fact("Nascimento", fmtShort(pb) + "<small>" + fmtDate(pb) + (p.birthCity ? " · " + esc(p.birthCity) : "") + "</small>"); }
-          facts += fact("Falecimento", fmtShort(g) + "<small>" + fmtDate(g) + "</small>");
+          if (g) facts += fact("Falecimento", fmtShort(g) + "<small>" + fmtDate(g) + "</small>");
           if (p.wedding) { var pw1 = parseISO(p.wedding); facts += fact("Casamento", fmtShort(pw1) + "<small>" + fmtDate(pw1) + "</small>"); }
-          facts += fact("Mishmará (data hebraica)", esc(p.hebrew));
-          facts += fact("Próximo mishmará",
+          if (p.hebrew) facts += fact("Mishmará (data hebraica)", esc(p.hebrew));
+          if (nh && g) facts += fact("Próximo mishmará",
             fmtShort(nh) + "<small>" + fmtDate(nh) + " · mishmará de " +
             (nh.getFullYear() - g.getFullYear()) + " anos" +
             (relDays(nh) ? " · " + relDays(nh).toLowerCase() : "") + "</small>");
+          else if (nh) facts += fact("Próximo mishmará", fmtShort(nh) + "<small>" + fmtDate(nh) + (relDays(nh) ? " · " + relDays(nh).toLowerCase() : "") + "</small>");
         } else {
-          var ng = nextAnnual(p);
-          facts += fact("Nascimento", fmtShort(g) + "<small>" + fmtDate(g) + (p.birthCity ? " · " + esc(p.birthCity) : "") + "</small>");
+          if (g) {
+            var ng = nextAnnual(p);
+            facts += fact("Nascimento", fmtShort(g) + "<small>" + fmtDate(g) + (p.birthCity ? " · " + esc(p.birthCity) : "") + "</small>");
+            facts += fact("Próximo aniversário",
+              fmtShort(ng) + "<small>" + fmtDate(ng) + " · faz " +
+              (ng.getFullYear() - g.getFullYear()) + " anos" +
+              (relDays(ng) ? " · " + relDays(ng).toLowerCase() : "") + "</small>");
+          } else if (p.birth) { var pb2 = parseISO(p.birth); facts += fact("Nascimento", fmtShort(pb2) + "<small>" + fmtDate(pb2) + (p.birthCity ? " · " + esc(p.birthCity) : "") + "</small>"); }
           if (p.death) { var pd = parseISO(p.death); facts += fact("Falecimento", fmtShort(pd) + "<small>" + fmtDate(pd) + "</small>"); }
           if (p.wedding) { var pw2 = parseISO(p.wedding); facts += fact("Casamento", fmtShort(pw2) + "<small>" + fmtDate(pw2) + "</small>"); }
-          facts += fact("Data hebraica", esc(p.hebrew));
-          facts += fact("Próximo aniversário",
-            fmtShort(ng) + "<small>" + fmtDate(ng) + " · faz " +
-            (ng.getFullYear() - g.getFullYear()) + " anos" +
-            (relDays(ng) ? " · " + relDays(ng).toLowerCase() : "") + "</small>");
-          facts += fact("Próxima data hebraica",
+          if (p.hebrew) facts += fact("Data hebraica", esc(p.hebrew));
+          if (nh) facts += fact("Próxima data hebraica",
             fmtShort(nh) + "<small>" + fmtDate(nh) +
             (relDays(nh) ? " · " + relDays(nh).toLowerCase() : "") + "</small>");
         }
+        if (!facts) facts = fact("Datas", "a completar");
         return '<article class="person">' +
           '<div class="id-block"><div class="name">' + esc(p.name) + "</div>" +
           '<div class="relation">' + esc(p.relation) + "</div>" +
@@ -850,7 +889,7 @@
         var box = document.getElementById("cal-greg");
         var html = "";
         for (var m = 0; m < 12; m++) {
-          var items = list.filter(function (p) { return parseISO(p.greg).getMonth() === m; })
+          var items = list.filter(function (p) { return p.greg && parseISO(p.greg).getMonth() === m; })
             .sort(function (a, b) { return parseISO(a.greg).getDate() - parseISO(b.greg).getDate(); });
           html += '<div class="month-box"><h3>' + GREG_MONTHS[m] + "</h3>";
           if (!items.length) {
@@ -881,9 +920,9 @@
           if (!items.length) return;
           html += '<div class="month-box"><h3>' + hm + "</h3><ul>" +
             items.map(function (p) {
-              var g = parseISO(p.greg);
-              var det = (p.type === "yahrzeit" ? "Mishmará · falecimento em " : "Nasceu em ") +
-                fmtShort(g) + (p.night ? " · à noite" : "");
+              var g = p.greg ? parseISO(p.greg) : null;
+              var det = g ? (p.type === "yahrzeit" ? "Mishmará · falecimento em " : "Nasceu em ") +
+                fmtShort(g) + (p.night ? " · à noite" : "") : "Data gregoriana a completar";
               return '<li class="' + (p.type === "yahrzeit" ? "yahrzeit" : "") + '">' +
                 '<span class="day">' + p.hebDay + "</span>" +
                 '<span><span class="who">' + esc(p.name) + "</span>" +
@@ -1093,9 +1132,10 @@
             g.appendChild(t);
           });
           var sub = el("text", { "class": "t-sub", x: cx(p), y: pos[p.name].y + CH - 9, "text-anchor": "middle" });
-          var yr = parseISO(p.greg).getFullYear();
+          var yr = p.greg ? parseISO(p.greg).getFullYear() : null;
           if (p.birth && p.death) sub.textContent = parseISO(p.birth).getFullYear() + " \u2013 " + parseISO(p.death).getFullYear();
-          else sub.textContent = p.type === "yahrzeit" ? "mishmará \u00B7 " + yr : "" + yr;
+          else if (yr) sub.textContent = p.type === "yahrzeit" ? "mishmará \u00B7 " + yr : "" + yr;
+          else sub.textContent = p.type === "yahrzeit" ? "mishmará" : "";
           g.appendChild(sub);
           g.addEventListener("click", function (ev) {
             ev.stopPropagation();
@@ -1123,21 +1163,25 @@
       // zoom/arrastar. Só leitura: sem botão de edição.
       var PM_NAME = null, PM_POS = null;
       function popHTML(p) {
-        var g = parseISO(p.greg), nh = parseISO(p.nextHeb), isY = p.type === "yahrzeit";
+        var g = p.greg ? parseISO(p.greg) : null, nh = p.nextHeb ? parseISO(p.nextHeb) : null, isY = p.type === "yahrzeit";
         var L = [];
         function line(k, v) { L.push('<div class="pp-line"><span class="pp-k">' + k + "</span>" + v + "</div>"); }
         if (isY) {
           if (p.birth) line("Nascimento", fmtDate(parseISO(p.birth)) + (p.birthCity ? " · " + esc(p.birthCity) : ""));
-          line("Falecimento", fmtDate(g));
+          if (g) line("Falecimento", fmtDate(g));
           if (p.wedding) line("Casamento", fmtDate(parseISO(p.wedding)));
-          line("Mishmará", esc(p.hebrew) + " · próximo em " + fmtDate(nh) + " (mishmará de " + (nh.getFullYear() - g.getFullYear()) + " anos" + (relDays(nh) ? ", " + relDays(nh).toLowerCase() : "") + ")");
+          if (p.hebrew && nh && g) line("Mishmará", esc(p.hebrew) + " · próximo em " + fmtDate(nh) + " (mishmará de " + (nh.getFullYear() - g.getFullYear()) + " anos" + (relDays(nh) ? ", " + relDays(nh).toLowerCase() : "") + ")");
+          else if (p.hebrew) line("Mishmará", esc(p.hebrew));
         } else {
-          var ng = nextAnnual(p);
-          line("Nascimento", fmtDate(g) + (p.birthCity ? " · " + esc(p.birthCity) : ""));
-          line("Data hebraica", esc(p.hebrew));
+          if (g) {
+            var ng = nextAnnual(p);
+            line("Nascimento", fmtDate(g) + (p.birthCity ? " · " + esc(p.birthCity) : ""));
+            line("Próximo aniversário", fmtDate(ng) + " · faz " + (ng.getFullYear() - g.getFullYear()) + " anos" + (relDays(ng) ? " · " + relDays(ng).toLowerCase() : ""));
+          } else if (p.birth) line("Nascimento", fmtDate(parseISO(p.birth)) + (p.birthCity ? " · " + esc(p.birthCity) : ""));
+          if (p.hebrew) line("Data hebraica", esc(p.hebrew));
           if (p.wedding) line("Casamento", fmtDate(parseISO(p.wedding)));
-          line("Próximo aniversário", fmtDate(ng) + " · faz " + (ng.getFullYear() - g.getFullYear()) + " anos" + (relDays(ng) ? " · " + relDays(ng).toLowerCase() : ""));
         }
+        if (!L.length) line("Datas", "a completar");
         return '<div class="pp-name">' + esc(p.name) + "</div>" +
           (p.relation ? '<div class="pp-rel">' + esc(p.relation) + "</div>" : "") +
           '<div class="pp-lines">' + L.join("") + "</div>";
@@ -1392,6 +1436,7 @@
         vincOptions(document.getElementById("c-conjuge"), p.name, SPOUSES[p.name] || (p.spouses && p.spouses[0]) || "");
       }
       function startEdit(id) {
+        if (!isEditor()) return;
         var p = personById(id);
         if (!p) return;
         EDIT_ID = id;
@@ -1405,7 +1450,6 @@
         document.getElementById("c-cidade").value = p.birthCity || "";
         document.getElementById("c-bio").value = p.bio || "";
         document.getElementById("c-noite").value = p.night ? "Sim" : "Não";
-        document.getElementById("c-senha").value = "";
         document.getElementById("c-link-row").style.display = "none";
         document.getElementById("c-vinc-row").style.display = "";
         fillVinculos(p);
@@ -1431,6 +1475,7 @@
 
       async function onCadastroSubmit(ev) {
         ev.preventDefault();
+        if (!isEditor()) return;
         var status = document.getElementById("c-status");
         var btn = document.getElementById("c-submit");
         status.className = "cad-status"; status.textContent = "";
@@ -1445,24 +1490,27 @@
         var bio = document.getElementById("c-bio").value.trim();
         var relacao = document.getElementById("c-relacao").value;
         var comQuem = document.getElementById("c-comquem").value;
-        var senha = document.getElementById("c-senha").value;
-        if (!nome || !nasc || !senha || (tipo === "yahrzeit" && !fal)) {
+        var senha = FAMILY_PASS;
+        if (!nome) {
           status.classList.add("err");
-          status.textContent = tipo === "yahrzeit" ? "Preencha nome, data de nascimento, data de falecimento e senha." : "Preencha nome, data de nascimento e senha.";
+          status.textContent = "Preencha o nome. As datas são opcionais — dá pra completar depois, pelo Editar.";
           return;
         }
         btn.disabled = true;
         try {
-          status.textContent = "Calculando a data hebraica…";
-          var parts = data.split("-").map(Number);
-          var h = await hebConvert(parts[0], parts[1], parts[2], noite === "Sim");
-          var nextHeb = await hebNext(h.day, h.month);
+          var h = { day: null, month: "" }, nextHeb = null;
+          if (data) {
+            status.textContent = "Calculando a data hebraica…";
+            var parts = data.split("-").map(Number);
+            h = await hebConvert(parts[0], parts[1], parts[2], noite === "Sim");
+            nextHeb = await hebNext(h.day, h.month);
+          }
           status.textContent = "Salvando…";
           if (EDIT_ID) {
             var cur = personById(EDIT_ID);
-            var ubody = { p_id: EDIT_ID, p_name: nome, p_relation: cur ? cur.relation : "", p_type: tipo, p_greg: data,
-              p_night: noite === "Sim", p_hebrew: h.day + " de " + h.month, p_heb_month: h.month, p_heb_day: h.day,
-              p_next_heb: nextHeb, p_birth: nasc || null, p_death: tipo === "yahrzeit" ? fal : null,
+            var ubody = { p_id: EDIT_ID, p_name: nome, p_relation: cur ? cur.relation : "", p_type: tipo, p_greg: data || null,
+              p_night: noite === "Sim", p_hebrew: data ? h.day + " de " + h.month : "", p_heb_month: data ? h.month : "", p_heb_day: data ? h.day : 0,
+              p_next_heb: nextHeb || "9999-12-31", p_birth: nasc || null, p_death: tipo === "yahrzeit" ? fal : null,
               p_wedding: casamento, p_bio: bio, p_birth_city: cidade, p_passphrase: senha };
             var ures = await fetch(SUPABASE_URL + "/rest/v1/rpc/update_member", { method: "POST", headers: sbHeaders(), body: JSON.stringify(ubody) });
             if (!ures.ok) throw new Error(sbErrorText(await ures.text()));
@@ -1498,9 +1546,9 @@
             status.textContent = "✓ Cadastro de " + nome + " atualizado. Recarregando a página…";
           } else {
             var link = computeLink(relacao, comQuem);
-            var body = { p_name: nome, p_relation: link.relationLabel, p_type: tipo, p_greg: data,
-              p_night: noite === "Sim", p_hebrew: h.day + " de " + h.month, p_heb_month: h.month, p_heb_day: h.day,
-              p_next_heb: nextHeb, p_parents: link.parents, p_spouses: link.spouses, p_note: "",
+            var body = { p_name: nome, p_relation: link.relationLabel, p_type: tipo, p_greg: data || null,
+              p_night: noite === "Sim", p_hebrew: data ? h.day + " de " + h.month : "", p_heb_month: data ? h.month : "", p_heb_day: data ? h.day : 0,
+              p_next_heb: nextHeb || "9999-12-31", p_parents: link.parents, p_spouses: link.spouses, p_note: "",
               p_passphrase: senha, p_link_parent_of: link.linkParentOf, p_link_spouse_of: link.linkSpouseOf };
             var res = await fetch(SUPABASE_URL + "/rest/v1/rpc/add_member", { method: "POST", headers: sbHeaders(), body: JSON.stringify(body) });
             if (!res.ok) throw new Error(sbErrorText(await res.text()));
@@ -1599,7 +1647,50 @@
         });
       }
 
-      async function init() {
+      /* ---------- Trava de entrada: visualização x editor ---------- */
+      var GATE_VIEW = "family", GATE_EDIT = "familyedit";
+      var FD_MODE = null, APP_BOOTED = false;
+      function isEditor() { return FD_MODE === "edit"; }
+      function applyMode(mode) {
+        FD_MODE = mode;
+        try { localStorage.setItem("fd_mode", mode); } catch (e) {}
+        document.body.classList.toggle("mode-view", mode === "view");
+        document.body.classList.toggle("mode-edit", mode === "edit");
+        document.getElementById("mode-chip").textContent = mode === "edit" ? "✏️ Modo editor" : "👁 Modo visualização";
+        document.getElementById("mode-upgrade").style.display = mode === "view" ? "" : "none";
+      }
+      function unlockApp(mode) {
+        applyMode(mode);
+        document.getElementById("gate").style.display = "none";
+        document.getElementById("app").style.display = "";
+        if (!APP_BOOTED) { APP_BOOTED = true; bootApp(); }
+      }
+      function gateWire() {
+        document.getElementById("gate-form").addEventListener("submit", function (ev) {
+          ev.preventDefault();
+          var v = document.getElementById("gate-pass").value.trim();
+          if (v === GATE_EDIT) unlockApp("edit");
+          else if (v === GATE_VIEW) unlockApp("view");
+          else document.getElementById("gate-err").style.display = "";
+        });
+        document.getElementById("mode-logout").addEventListener("click", function () {
+          try { localStorage.removeItem("fd_mode"); } catch (e) {}
+          location.reload();
+        });
+        document.getElementById("mode-upgrade").addEventListener("click", function () {
+          var v = window.prompt("Digite a senha de editor:");
+          if (v === null) return;
+          if (v.trim() === GATE_EDIT) applyMode("edit");
+          else window.alert("Senha de editor incorreta.");
+        });
+      }
+      function init() {
+        gateWire();
+        var saved = null;
+        try { saved = localStorage.getItem("fd_mode"); } catch (e) {}
+        if (saved === "view" || saved === "edit") unlockApp(saved);
+      }
+      async function bootApp() {
         var up0 = document.getElementById("upcoming");
         if (up0) up0.innerHTML = '<p class="tree-hint">Carregando dados…</p>';
         await loadMembers();
