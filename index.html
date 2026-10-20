@@ -130,6 +130,10 @@
       .person-pop[hidden] { display: none; }
       .pp-close { position: absolute; top: 5px; right: 7px; border: none; background: none; color: var(--ink-faint); font-size: 17px; line-height: 1; cursor: pointer; padding: 2px 4px; }
       .pp-close:hover { color: var(--ink); }
+      .pp-actions { display: flex; gap: 8px; margin-top: 10px; padding-top: 9px; border-top: 1px solid var(--line); }
+      .pp-actions[hidden] { display: none; }
+      .pp-btn { flex: 1; font: inherit; font-size: 13px; font-weight: 600; padding: 7px 6px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface-2); color: var(--ink); cursor: pointer; }
+      .pp-btn:hover { border-color: var(--gold); }
       .pp-name { font-family: "Lora", Georgia, serif; font-size: 16.5px; font-weight: 600; padding-right: 18px; }
       .pp-rel { color: var(--ink-soft); font-size: 13px; margin-top: 1px; }
       .pp-lines { margin-top: 8px; display: flex; flex-direction: column; gap: 6px; }
@@ -498,6 +502,10 @@
         <div class="person-pop" id="person-pop" hidden>
           <button type="button" class="pp-close" id="pp-close" aria-label="Fechar">&#215;</button>
           <div id="pp-content"></div>
+          <div class="pp-actions" id="pp-actions" hidden>
+            <button type="button" class="pp-btn" id="pp-edit">✏️ Editar</button>
+            <button type="button" class="pp-btn" id="pp-add">＋ Adicionar parente</button>
+          </div>
         </div>
       </div>
 
@@ -1216,6 +1224,7 @@
         PM_NAME = p.name; PM_POS = nodePos || null;
         var pop = document.getElementById("person-pop");
         document.getElementById("pp-content").innerHTML = popHTML(p);
+        document.getElementById("pp-actions").hidden = !isEditor();
         pop.hidden = false;
         positionPersonPop();
       }
@@ -1460,6 +1469,16 @@
         vincOptions(document.getElementById("c-pai"), p.name, pai);
         vincOptions(document.getElementById("c-mae"), p.name, mae);
         vincOptions(document.getElementById("c-conjuge"), p.name, SPOUSES[p.name] || (p.spouses && p.spouses[0]) || "");
+      }
+      function openAddFor(name) {
+        if (!isEditor()) return;
+        cancelEdit();
+        var box = document.getElementById("cadastro-box");
+        box.style.display = "";
+        document.getElementById("add-toggle").setAttribute("aria-expanded", "true");
+        var sel = document.getElementById("c-comquem");
+        if (sel) sel.value = name;
+        box.scrollIntoView({ behavior: "smooth", block: "start" });
       }
       function startEdit(id) {
         if (!isEditor()) return;
@@ -1727,6 +1746,16 @@
         render();
         initTreeNav();
         document.getElementById("pp-close").addEventListener("click", closePersonPopup);
+        document.getElementById("pp-edit").addEventListener("click", function () {
+          var p = PM_NAME ? BYNAME[PM_NAME] : null;
+          closePersonPopup();
+          if (p && p.id) startEdit(p.id);
+        });
+        document.getElementById("pp-add").addEventListener("click", function () {
+          var nm = PM_NAME;
+          closePersonPopup();
+          if (nm) openAddFor(nm);
+        });
         document.addEventListener("keydown", function (e) { if (e.key === "Escape") closePersonPopup(); });
         document.getElementById("cadastro-form").addEventListener("submit", onCadastroSubmit);
         document.getElementById("add-toggle").addEventListener("click", function (e) {
