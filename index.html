@@ -94,6 +94,22 @@
         margin: 20px 0 26px;
       }
 
+
+      /* ---------- Árvore da família ---------- */
+      .tree-hint { color: var(--ink-soft); font-size: 14px; margin: -6px 0 12px; }
+      .tree-wrap { overflow-x: auto; padding-bottom: 8px; }
+      .tree-wrap svg { display: block; }
+      #tree .t-link { stroke: var(--line); stroke-width: 1.6; fill: none; }
+      #tree .t-spouse { stroke: var(--gold); stroke-width: 2; }
+      #tree .t-card { cursor: pointer; }
+      #tree .t-card rect { fill: #fff; stroke: var(--line); stroke-width: 1.2; }
+      #tree .t-card text { fill: #26221a; font-family: "Source Sans 3", Arial, sans-serif; }
+      #tree .t-name { font-size: 12.5px; font-weight: 600; }
+      #tree .t-sub { font-size: 10.5px; fill: #8a8172; }
+      #tree .t-card.yahrzeit rect { fill: #f7f2e7; }
+      #tree .t-dim { opacity: .18; }
+      #tree .t-hi rect { stroke: var(--gold); stroke-width: 2.6; }
+
       h2.section-title {
         font-family: "Lora", Georgia, serif;
         font-size: 21px;
@@ -367,6 +383,11 @@
         <div class="upcoming" id="upcoming"></div>
       </section>
 
+      <h2 class="section-title">&#193;rvore da fam&#237;lia</h2>
+      <p class="tree-hint">Toque num nome para destacar pais, filhos e c&#244;njuge.</p>
+      <div class="tree-wrap"><svg id="tree" role="img" aria-label="&#193;rvore geneal&#243;gica da fam&#237;lia"></svg></div>
+
+
       <h2 class="section-title">Consultar as datas</h2>
       <section class="controls" aria-label="Busca e filtros">
         <div class="row">
@@ -464,35 +485,35 @@
           nextHeb: "2026-12-20",
           note: "<strong>10 de Tevet</strong> é dia de jejum (Asara B'Tevet)." },
         { name: "Rony El Mann", relation: "Irmão", type: "aniversario",
-          greg: "1984-02-16", night: false, hebrew: "13 de Adar I", hebMonth: "Adar I", hebDay: 13,
+          greg: "1984-02-16", parents: ["Isaac Joseph El Mann", "Katia Maria El Mann"], night: false, hebrew: "13 de Adar I", hebMonth: "Adar I", hebDay: 13,
           nextHeb: "2027-02-20",
           note: "Nasceu em <strong>Adar I</strong> (ano hebraico bissexto); em anos comuns, a data correspondente cai em Adar." },
         { name: "Nathaly El Mann", relation: "Irmã", type: "aniversario",
-          greg: "1989-05-31", night: false, hebrew: "26 de Iyyar", hebMonth: "Iyyar", hebDay: 26,
+          greg: "1989-05-31", parents: ["Isaac Joseph El Mann", "Katia Maria El Mann"], night: false, hebrew: "26 de Iyyar", hebMonth: "Iyyar", hebDay: 26,
           nextHeb: "2027-06-02" },
         { name: "Mark El Mann", relation: "Irmão", type: "aniversario",
-          greg: "1991-01-05", night: false, hebrew: "19 de Tevet", hebMonth: "Tevet", hebDay: 19,
+          greg: "1991-01-05", parents: ["Isaac Joseph El Mann", "Katia Maria El Mann"], night: false, hebrew: "19 de Tevet", hebMonth: "Tevet", hebDay: 19,
           nextHeb: "2026-12-29" },
         { name: "Cheiva Orlowski", relation: "Sogra — mãe da Pri", type: "aniversario",
           greg: "1956-12-31", night: false, hebrew: "27 de Tevet", hebMonth: "Tevet", hebDay: 27,
           nextHeb: "2027-01-06" },
         { name: "Breno Erick Orlowski", relation: "Cunhado — irmão da Pri", type: "aniversario",
-          greg: "1994-09-15", night: true, hebrew: "11 de Tishrei", hebMonth: "Tishrei", hebDay: 11,
+          greg: "1994-09-15", parents: ["Cheiva Orlowski", "Ronaldo Orlowski"], night: true, hebrew: "11 de Tishrei", hebMonth: "Tishrei", hebDay: 11,
           nextHeb: "2027-10-12",
           note: "<strong>11 de Tishrei</strong> é o dia logo após o Yom Kipur (10 de Tishrei)." },
         { name: "Priscilla Orlowski El-Mann", relation: "Esposa", type: "aniversario",
-          greg: "1986-11-14", night: true, hebrew: "13 de Cheshvan", hebMonth: "Cheshvan", hebDay: 13,
+          greg: "1986-11-14", parents: ["Cheiva Orlowski", "Ronaldo Orlowski"], night: true, hebrew: "13 de Cheshvan", hebMonth: "Cheshvan", hebDay: 13,
           nextHeb: "2026-10-24" },
         { name: "Joey El-Mann", relation: "Ele mesmo", type: "aniversario",
-          greg: "1982-07-28", night: true, hebrew: "9 de Av", hebMonth: "Av", hebDay: 9,
+          greg: "1982-07-28", parents: ["Isaac Joseph El Mann", "Katia Maria El Mann"], night: true, hebrew: "9 de Av", hebMonth: "Av", hebDay: 9,
           nextHeb: "2027-08-12",
           note: "<strong>9 de Av</strong> é Tisha B'Av, dia de jejum." },
         { name: "Rafaella Orlowski El-Mann", relation: "Filha", type: "aniversario",
-          greg: "2016-04-22", night: true, hebrew: "15 de Nisan", hebMonth: "Nisan", hebDay: 15,
+          greg: "2016-04-22", parents: ["Joey El-Mann", "Priscilla Orlowski El-Mann"], night: true, hebrew: "15 de Nisan", hebMonth: "Nisan", hebDay: 15,
           nextHeb: "2027-04-22",
           note: "<strong>15 de Nisan</strong> cai sempre no 1º dia de Pessach." },
         { name: "Gabriella Orlowski El-Mann", relation: "Filha", type: "aniversario",
-          greg: "2023-10-20", night: true, hebrew: "6 de Cheshvan", hebMonth: "Cheshvan", hebDay: 6,
+          greg: "2023-10-20", parents: ["Joey El-Mann", "Priscilla Orlowski El-Mann"], night: true, hebrew: "6 de Cheshvan", hebMonth: "Cheshvan", hebDay: 6,
           nextHeb: "2027-11-06" },
         { name: "Ronaldo Orlowski", relation: "Sogro — pai da Pri", type: "yahrzeit",
           greg: "2022-05-04", night: true, hebrew: "4 de Iyyar", hebMonth: "Iyyar", hebDay: 4,
@@ -731,6 +752,154 @@
         box.innerHTML = html || '<p class="none">Sem datas nos meses hebraicos com os filtros atuais.</p>';
       }
 
+
+      /* ---------- Árvore genealógica ---------- */
+      var TREE_SEL = null;
+      function treeInfo() {
+        var byName = {};
+        PEOPLE.forEach(function (p) { byName[p.name] = p; });
+        var spouse = {};
+        PEOPLE.forEach(function (p) {
+          var ps = (p.parents || []).filter(function (n) { return byName[n]; });
+          if (ps.length === 2) { spouse[ps[0]] = ps[1]; spouse[ps[1]] = ps[0]; }
+        });
+        var gen = {};
+        var changed = true, guard = 0;
+        while (changed && guard++ < 30) {
+          changed = false;
+          PEOPLE.forEach(function (p) {
+            if (gen[p.name] !== undefined) return;
+            var ps = (p.parents || []).filter(function (n) { return byName[n]; });
+            if (!ps.length) { gen[p.name] = 0; changed = true; }
+            else if (ps.every(function (n) { return gen[n] !== undefined; })) {
+              gen[p.name] = 1 + Math.max.apply(null, ps.map(function (n) { return gen[n]; }));
+              changed = true;
+            }
+          });
+        }
+        PEOPLE.forEach(function (p) { if (gen[p.name] === undefined) gen[p.name] = 0; });
+        return { byName: byName, spouse: spouse, gen: gen };
+      }
+      function wrapName(name) {
+        var words = name.split(" "), lines = [], cur = "";
+        words.forEach(function (w) {
+          if (cur && (cur + " " + w).length > 17) { lines.push(cur); cur = w; }
+          else cur = cur ? cur + " " + w : w;
+        });
+        if (cur) lines.push(cur);
+        if (lines.length > 2) lines = [lines[0], lines.slice(1).join(" ")];
+        return lines;
+      }
+      function renderTree() {
+        var svg = document.getElementById("tree");
+        if (!svg) return;
+        var T = treeInfo(), byName = T.byName, spouse = T.spouse, gen = T.gen;
+        var NS = "http://www.w3.org/2000/svg";
+        while (svg.firstChild) svg.removeChild(svg.firstChild);
+        var maxGen = 0;
+        PEOPLE.forEach(function (p) { maxGen = Math.max(maxGen, gen[p.name]); });
+        var rows = [];
+        for (var gi = 0; gi <= maxGen; gi++) rows[gi] = [];
+        PEOPLE.forEach(function (p) { rows[gen[p.name]].push(p); });
+        var CW = 172, CH = 64, HG = 26, VG = 96;
+        var pos = {};
+        rows.forEach(function (row, gi) {
+          row.sort(function (a, b) {
+            function key(p) {
+              var ps = (p.parents || []).filter(function (n) { return byName[n] && pos[n]; });
+              return ps.length ? ("000000" + pos[ps[0]].x).slice(-6) : "~~~~~~";
+            }
+            var ka = key(a), kb = key(b);
+            if (ka !== kb) return ka < kb ? -1 : 1;
+            return a.name < b.name ? -1 : 1;
+          });
+          var placed = [], used = {};
+          row.forEach(function (p) {
+            if (used[p.name]) return;
+            used[p.name] = true; placed.push(p);
+            var s = spouse[p.name];
+            if (s && byName[s] && gen[s] === gi && !used[s]) { used[s] = true; placed.push(byName[s]); }
+          });
+          rows[gi] = placed;
+          placed.forEach(function (p, i) { pos[p.name] = { x: i * (CW + HG) + 4, y: gi * (CH + VG) + 4 }; });
+        });
+        var W = 0;
+        PEOPLE.forEach(function (p) { W = Math.max(W, pos[p.name].x + CW + 6); });
+        var H = (maxGen + 1) * (CH + VG) - VG + 12;
+        svg.setAttribute("width", W); svg.setAttribute("height", H);
+        svg.setAttribute("viewBox", "0 0 " + W + " " + H);
+        function el(tag, attrs) {
+          var e = document.createElementNS(NS, tag);
+          for (var k in attrs) e.setAttribute(k, attrs[k]);
+          return e;
+        }
+        function cx(p) { return pos[p.name].x + CW / 2; }
+        function top(p) { return pos[p.name].y; }
+        function bot(p) { return pos[p.name].y + CH; }
+        PEOPLE.forEach(function (p) {
+          var ps = (p.parents || []).filter(function (n) { return byName[n]; });
+          if (!ps.length) return;
+          var midY = (bot(byName[ps[0]]) + top(p)) / 2;
+          var d;
+          if (ps.length === 2 && spouse[ps[0]] === ps[1]) {
+            var mx = (cx(byName[ps[0]]) + cx(byName[ps[1]])) / 2;
+            d = "M " + mx + " " + bot(byName[ps[0]]) + " V " + midY + " H " + cx(p) + " V " + top(p);
+          } else {
+            d = ps.map(function (n) {
+              return "M " + cx(byName[n]) + " " + bot(byName[n]) + " V " + midY + " H " + cx(p) + " V " + top(p);
+            }).join(" ");
+          }
+          svg.appendChild(el("path", { "class": "t-link", d: d }));
+        });
+        var doneSpouse = {};
+        PEOPLE.forEach(function (p) {
+          var s = spouse[p.name];
+          if (!s || doneSpouse[p.name] || gen[s] !== gen[p.name]) return;
+          doneSpouse[p.name] = doneSpouse[s] = true;
+          if (Math.abs(pos[p.name].x - pos[s].x) > CW + HG + 1) return;
+          var left = pos[p.name].x < pos[s].x ? pos[p.name] : pos[s];
+          var right = pos[p.name].x < pos[s].x ? pos[s] : pos[p.name];
+          var y = pos[p.name].y + CH / 2;
+          svg.appendChild(el("line", { "class": "t-spouse", x1: left.x + CW, y1: y, x2: right.x, y2: y }));
+        });
+        PEOPLE.forEach(function (p) {
+          var g = el("g", { "class": "t-card" + (p.type === "yahrzeit" ? " yahrzeit" : ""), "data-name": p.name });
+          g.appendChild(el("rect", { x: pos[p.name].x, y: pos[p.name].y, width: CW, height: CH, rx: 10 }));
+          wrapName(p.name).forEach(function (ln, i) {
+            var t = el("text", { "class": "t-name", x: cx(p), y: pos[p.name].y + 22 + i * 15, "text-anchor": "middle" });
+            t.textContent = ln;
+            g.appendChild(t);
+          });
+          var sub = el("text", { "class": "t-sub", x: cx(p), y: pos[p.name].y + CH - 9, "text-anchor": "middle" });
+          var yr = parseISO(p.greg).getFullYear();
+          sub.textContent = p.type === "yahrzeit" ? "yahrzeit \u00B7 " + yr : "" + yr;
+          g.appendChild(sub);
+          g.addEventListener("click", function (ev) { ev.stopPropagation(); treeSelect(p.name === TREE_SEL ? null : p.name); });
+          svg.appendChild(g);
+        });
+        svg.onclick = function () { treeSelect(null); };
+        treeSelect(TREE_SEL);
+      }
+      function treeSelect(name) {
+        TREE_SEL = name;
+        var svg = document.getElementById("tree");
+        if (!svg) return;
+        var cards = svg.querySelectorAll(".t-card");
+        if (!name) { cards.forEach(function (c) { c.classList.remove("t-dim", "t-hi"); }); return; }
+        var T = treeInfo(), byName = T.byName, spouse = T.spouse;
+        var p = byName[name];
+        var keep = {};
+        keep[name] = true;
+        (p.parents || []).forEach(function (n) { keep[n] = true; if (spouse[n]) keep[spouse[n]] = true; });
+        PEOPLE.forEach(function (c) { if ((c.parents || []).indexOf(name) >= 0) keep[c.name] = true; });
+        if (spouse[name]) keep[spouse[name]] = true;
+        cards.forEach(function (c) {
+          var n = c.getAttribute("data-name");
+          c.classList.toggle("t-dim", !keep[n]);
+          c.classList.toggle("t-hi", n === name);
+        });
+      }
+
       function render() {
         var list = filtered();
         var count = document.getElementById("result-count");
@@ -767,6 +936,7 @@
       function init() {
         fillSelects();
         renderUpcoming();
+        renderTree();
         render();
 
         document.getElementById("q").addEventListener("input", function (e) {
