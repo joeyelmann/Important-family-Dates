@@ -146,6 +146,7 @@
       #tree .t-dim { opacity: .18; }
       #tree .t-hi rect { stroke: var(--gold); stroke-width: 2.6; }
       #tree .t-info { cursor: pointer; }
+      #tree .t-info .t-info-hit { fill: transparent; stroke: none; }
       #tree .t-info circle { fill: var(--surface); stroke: var(--ink-faint); stroke-width: 1; }
       #tree .t-info text { font-size: 9.5px; font-style: italic; font-weight: 700; fill: var(--ink-faint); font-family: Georgia, serif; }
       #tree .t-info:hover circle { stroke: var(--gold); }
@@ -423,6 +424,30 @@
         padding-top: 14px;
       }
       .hidden { display: none !important; }
+      html, body { overflow-x: clip; }
+      * { -webkit-tap-highlight-color: transparent; }
+
+      /* ---------- Celular (iPhone/Android) ---------- */
+      @media (max-width: 640px) {
+        .wrap { padding: 20px 12px 44px; }
+        .page-head p { font-size: 15px; }
+        .upcoming { grid-template-columns: 1fr 1fr; gap: 9px; }
+        .up-card { padding: 11px 12px 10px; }
+        .up-card .who { font-size: 15.5px; }
+        .up-card .what { font-size: 13px; }
+        .up-card .date { font-size: 12.5px; }
+        .controls { padding: 12px; }
+        .controls select, .controls input { max-width: 100%; }
+        .cad-form input, .cad-form select, .search-box input, .controls select { font-size: 16px; }
+        .seg button { padding: 9px 13px; }
+        .tree-tools button { padding: 10px 15px; font-size: 16.5px; }
+        .person { padding: 14px; }
+        .facts { gap: 8px 14px; }
+        .cal-grid { grid-template-columns: 1fr; }
+        .gate { padding: 12px; }
+        .gate-box { padding: 22px 18px; }
+        .mode-line { flex-wrap: wrap; }
+      }
     </style>
   </head>
   <body>
@@ -1142,6 +1167,7 @@
             treeSelect(p.name === TREE_SEL ? null : p.name);
           });
           var info = el("g", { "class": "t-info" });
+          info.appendChild(el("circle", { cx: pos[p.name].x + CW - 11, cy: pos[p.name].y + 11, r: 15, "class": "t-info-hit" }));
           info.appendChild(el("circle", { cx: pos[p.name].x + CW - 11, cy: pos[p.name].y + 11, r: 7.5 }));
           var itTx = el("text", { x: pos[p.name].x + CW - 11, y: pos[p.name].y + 14.5, "text-anchor": "middle" });
           itTx.textContent = "i";
