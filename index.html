@@ -130,6 +130,11 @@
       #tree .t-card.yahrzeit rect { fill: #f7f2e7; }
       #tree .t-dim { opacity: .18; }
       #tree .t-hi rect { stroke: var(--gold); stroke-width: 2.6; }
+      #tree .t-info { cursor: pointer; }
+      #tree .t-info circle { fill: var(--surface); stroke: var(--ink-faint); stroke-width: 1; }
+      #tree .t-info text { font-size: 9.5px; font-style: italic; font-weight: 700; fill: var(--ink-faint); font-family: Georgia, serif; }
+      #tree .t-info:hover circle { stroke: var(--gold); }
+      #tree .t-info:hover text { fill: var(--gold); }
 
       /* ---------- Cadastro ---------- */
       .cad-form { max-width: 660px; }
@@ -426,7 +431,7 @@
       </section>
 
       <h2 class="section-title">&#193;rvore da fam&#237;lia</h2>
-      <p class="tree-hint">Toque num nome para ver os dados e destacar pais, filhos e cônjuge. Arraste para navegar pela árvore; zoom com os botões +/−, a roda do mouse ou pinçando a tela.</p>
+      <p class="tree-hint">Toque num nome para destacar pais, filhos e cônjuge; no ícone ⓘ no canto do cartão, para ver os dados da pessoa. Arraste para navegar pela árvore; zoom com os botões +/−, a roda do mouse ou pinçando a tela.</p>
       <div class="tree-wrap">
         <div class="tree-tools">
           <button type="button" id="tz-out" aria-label="Diminuir zoom">&#8722;</button>
@@ -460,6 +465,11 @@
         <div class="cad-row">
           <label>Cidade de nascimento (opcional)<input id="c-cidade" type="text" autocomplete="off" maxlength="60"></label>
           <label>Bio (opcional)<input id="c-bio" type="text" autocomplete="off" maxlength="280" placeholder="Uma linha sobre a pessoa"></label>
+        </div>
+        <div class="cad-row" id="c-vinc-row" style="display:none">
+          <label>Pai<select id="c-pai"></select></label>
+          <label>Mãe<select id="c-mae"></select></label>
+          <label>Cônjuge<select id="c-conjuge"></select></label>
         </div>
         <div class="cad-row" id="c-link-row">
           <label>Qual &#233; a rela&#231;&#227;o com a fam&#237;lia?*<select id="c-relacao" required></select></label>
@@ -1089,9 +1099,19 @@
           g.appendChild(sub);
           g.addEventListener("click", function (ev) {
             ev.stopPropagation();
-            if (p.name === TREE_SEL && PM_NAME === p.name) { treeSelect(null); closePersonPopup(); }
+            treeSelect(p.name === TREE_SEL ? null : p.name);
+          });
+          var info = el("g", { "class": "t-info" });
+          info.appendChild(el("circle", { cx: pos[p.name].x + CW - 11, cy: pos[p.name].y + 11, r: 7.5 }));
+          var itTx = el("text", { x: pos[p.name].x + CW - 11, y: pos[p.name].y + 14.5, "text-anchor": "middle" });
+          itTx.textContent = "i";
+          info.appendChild(itTx);
+          info.addEventListener("click", function (ev) {
+            ev.stopPropagation();
+            if (PM_NAME === p.name) closePersonPopup();
             else { treeSelect(p.name); openPersonPopup(p, pos[p.name]); }
           });
+          g.appendChild(info);
           canvas.appendChild(g);
         });
         svg.onclick = function () { treeSelect(null); closePersonPopup(); };
@@ -1346,6 +1366,31 @@
         document.getElementById("c-fal-wrap").style.display = checked ? "" : "none";
         document.getElementById("c-noite-txt").textContent = checked ? "O falecimento foi à noite (depois do pôr do sol)?" : "O nascimento foi à noite (depois do pôr do sol)?";
       }
+      function vincOptions(sel, excludeName, selected) {
+        sel.innerHTML = "";
+        var o0 = document.createElement("option");
+        o0.value = ""; o0.textContent = "—";
+        sel.appendChild(o0);
+        PEOPLE.map(function (q) { return q.name; }).filter(function (n) { return n !== excludeName; }).sort().forEach(function (n) {
+          var o = document.createElement("option");
+          o.value = n; o.textContent = n;
+          if (n === selected) o.selected = true;
+          sel.appendChild(o);
+        });
+      }
+      function fillVinculos(p) {
+        var pai = "", mae = "";
+        (p.parents || []).forEach(function (n) {
+          var q = BYNAME[n];
+          var rel = q ? (q.relation || "") : "";
+          if (/^(Esposa|Mãe)/.test(rel)) { if (!mae) mae = n; else if (!pai) pai = n; }
+          else if (/^(Esposo|Pai)/.test(rel)) { if (!pai) pai = n; else if (!mae) mae = n; }
+          else if (!pai) pai = n; else if (!mae) mae = n;
+        });
+        vincOptions(document.getElementById("c-pai"), p.name, pai);
+        vincOptions(document.getElementById("c-mae"), p.name, mae);
+        vincOptions(document.getElementById("c-conjuge"), p.name, SPOUSES[p.name] || (p.spouses && p.spouses[0]) || "");
+      }
       function startEdit(id) {
         var p = personById(id);
         if (!p) return;
@@ -1362,6 +1407,8 @@
         document.getElementById("c-noite").value = p.night ? "Sim" : "Não";
         document.getElementById("c-senha").value = "";
         document.getElementById("c-link-row").style.display = "none";
+        document.getElementById("c-vinc-row").style.display = "";
+        fillVinculos(p);
         document.getElementById("c-mode").style.display = "";
         document.getElementById("c-mode-txt").textContent = "Editando o cadastro de " + p.name;
         document.getElementById("c-submit").textContent = "Salvar alterações";
@@ -1375,6 +1422,7 @@
         document.getElementById("cadastro-form").reset();
         setFaleceuUI(false);
         document.getElementById("c-link-row").style.display = "";
+        document.getElementById("c-vinc-row").style.display = "none";
         document.getElementById("c-mode").style.display = "none";
         document.getElementById("c-submit").textContent = "Adicionar à página";
         var st = document.getElementById("c-status");
@@ -1424,6 +1472,28 @@
                 await fetch(SUPABASE_URL + "/rest/v1/rpc/set_wedding", { method: "POST", headers: sbHeaders(), body: JSON.stringify({ p_id: BYNAME[spName].id, p_wedding: casamento, p_passphrase: senha }) });
               } catch (e3) {}
             }
+            // Vínculos (pai/mãe/cônjuge): o laço forte é o de pai/mãe — os
+            // filhos apontam para os pais; o cônjuge sincroniza dos dois lados.
+            try {
+              var vPai = document.getElementById("c-pai").value;
+              var vMae = document.getElementById("c-mae").value;
+              var vConj = document.getElementById("c-conjuge").value;
+              var newParents = [vPai, vMae].filter(function (x) { return x; });
+              var newSpouses = vConj ? [vConj] : [];
+              await fetch(SUPABASE_URL + "/rest/v1/rpc/set_links", { method: "POST", headers: sbHeaders(), body: JSON.stringify({ p_id: EDIT_ID, p_parents: newParents, p_spouses: newSpouses, p_passphrase: senha }) });
+              if (vConj && BYNAME[vConj] && BYNAME[vConj].id) {
+                var spRow = BYNAME[vConj];
+                var spSpouses = (spRow.spouses || []).slice();
+                if (spSpouses.indexOf(nome) < 0) spSpouses.push(nome);
+                await fetch(SUPABASE_URL + "/rest/v1/rpc/set_links", { method: "POST", headers: sbHeaders(), body: JSON.stringify({ p_id: spRow.id, p_parents: spRow.parents || [], p_spouses: spSpouses, p_passphrase: senha }) });
+              }
+              var oldSp = cur ? SPOUSES[cur.name] : null;
+              if (oldSp && oldSp !== vConj && BYNAME[oldSp] && BYNAME[oldSp].id && (BYNAME[oldSp].spouses || []).indexOf(cur.name) >= 0) {
+                var osRow = BYNAME[oldSp];
+                var osSpouses = (osRow.spouses || []).filter(function (x) { return x !== nome && x !== cur.name; });
+                await fetch(SUPABASE_URL + "/rest/v1/rpc/set_links", { method: "POST", headers: sbHeaders(), body: JSON.stringify({ p_id: osRow.id, p_parents: osRow.parents || [], p_spouses: osSpouses, p_passphrase: senha }) });
+              }
+            } catch (e4) {}
             status.classList.add("ok");
             status.textContent = "✓ Cadastro de " + nome + " atualizado. Recarregando a página…";
           } else {
@@ -1455,6 +1525,36 @@
                 await fetch(SUPABASE_URL + "/rest/v1/rpc/set_profile", { method: "POST", headers: sbHeaders(), body: JSON.stringify({ p_id: newId, p_bio: bio, p_birth_city: cidade, p_passphrase: senha }) });
               } catch (e6) {}
             }
+            // Propagação dos vínculos: quem entra como cônjuge de um pai/mãe
+            // vira também pai/mãe dos filhos que essa pessoa já tem na página;
+            // quem entra como pai/mãe (ou sogro/sogra) vira cônjuge do outro
+            // pai/mãe da criança.
+            try {
+              if ((relacao === "Esposo" || relacao === "Esposa") && BYNAME[comQuem]) {
+                for (var ci = 0; ci < PEOPLE.length; ci++) {
+                  var ch = PEOPLE[ci];
+                  if (ch.id && (ch.parents || []).indexOf(comQuem) >= 0 && ch.parents.indexOf(nome) < 0) {
+                    await fetch(SUPABASE_URL + "/rest/v1/rpc/set_links", { method: "POST", headers: sbHeaders(), body: JSON.stringify({ p_id: ch.id, p_parents: ch.parents.concat([nome]), p_spouses: ch.spouses || [], p_passphrase: senha }) });
+                  }
+                }
+              }
+              var kidName = null;
+              if (relacao === "Pai" || relacao === "Mãe") kidName = comQuem;
+              if ((relacao === "Sogro" || relacao === "Sogra") && SPOUSES[comQuem]) kidName = SPOUSES[comQuem];
+              if (kidName && BYNAME[kidName]) {
+                var kid = BYNAME[kidName];
+                var others = (kid.parents || []).filter(function (x) { return x !== nome; });
+                if (others.length && BYNAME[others[0]]) {
+                  var other = BYNAME[others[0]];
+                  await fetch(SUPABASE_URL + "/rest/v1/rpc/set_links", { method: "POST", headers: sbHeaders(), body: JSON.stringify({ p_id: newId, p_parents: [], p_spouses: [others[0]], p_passphrase: senha }) });
+                  if (other.id) {
+                    var oSp = (other.spouses || []).slice();
+                    if (oSp.indexOf(nome) < 0) oSp.push(nome);
+                    await fetch(SUPABASE_URL + "/rest/v1/rpc/set_links", { method: "POST", headers: sbHeaders(), body: JSON.stringify({ p_id: other.id, p_parents: other.parents || [], p_spouses: oSp, p_passphrase: senha }) });
+                  }
+                }
+              }
+            } catch (e7) {}
             status.classList.add("ok");
             status.textContent = "✓ " + nome + " adicionado (" + h.day + " de " + h.month + "). Recarregando a página…";
           }
