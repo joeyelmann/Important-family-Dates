@@ -111,6 +111,13 @@
       .tree-tools { position: absolute; top: 8px; right: 8px; display: flex; gap: 6px; z-index: 3; }
       .tree-tools button { font: inherit; font-size: 15px; line-height: 1; padding: 7px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; box-shadow: var(--shadow); }
       .tree-tools button:hover { border-color: var(--gold); }
+      .person-modal { position: fixed; inset: 0; z-index: 60; display: flex; align-items: center; justify-content: center; padding: 14px; }
+      .person-modal[hidden] { display: none; }
+      .pm-backdrop { position: absolute; inset: 0; background: rgba(32, 26, 14, .48); }
+      .pm-box { position: relative; width: min(430px, 100%); max-height: 86vh; overflow: auto; border-radius: var(--radius); }
+      .pm-box .person { grid-template-columns: 1fr; margin: 0; }
+      .pm-box .person .id-block { padding-right: 34px; }
+      .pm-close { position: absolute; top: 8px; right: 8px; z-index: 2; width: 32px; height: 32px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font-size: 18px; line-height: 1; cursor: pointer; box-shadow: var(--shadow); }
       #tree .t-link { stroke: var(--line); stroke-width: 1.6; fill: none; }
       #tree .t-spouse { stroke: var(--gold); stroke-width: 2; fill: none; }
       #tree .t-card { cursor: pointer; }
@@ -425,6 +432,13 @@
           <button type="button" id="tz-fit">Ajustar</button>
         </div>
         <svg id="tree" role="img" aria-label="&#193;rvore geneal&#243;gica da fam&#237;lia"></svg>
+      </div>
+      <div class="person-modal" id="person-modal" hidden>
+        <div class="pm-backdrop" id="pm-backdrop"></div>
+        <div class="pm-box" role="dialog" aria-modal="true" aria-label="Dados da pessoa">
+          <button type="button" class="pm-close" id="pm-close" aria-label="Fechar">&#215;</button>
+          <div id="pm-content"></div>
+        </div>
       </div>
 
       <div id="cadastro-box" style="display:none">
@@ -1070,12 +1084,30 @@
           if (p.birth && p.death) sub.textContent = parseISO(p.birth).getFullYear() + " \u2013 " + parseISO(p.death).getFullYear();
           else sub.textContent = p.type === "yahrzeit" ? "mishmará \u00B7 " + yr : "" + yr;
           g.appendChild(sub);
-          g.addEventListener("click", function (ev) { ev.stopPropagation(); treeSelect(p.name === TREE_SEL ? null : p.name); });
+          g.addEventListener("click", function (ev) {
+            ev.stopPropagation();
+            if (p.name === TREE_SEL && PM_NAME === p.name) { treeSelect(null); closePersonPopup(); }
+            else { treeSelect(p.name); openPersonPopup(p); }
+          });
           canvas.appendChild(g);
         });
-        svg.onclick = function () { treeSelect(null); };
+        svg.onclick = function () { treeSelect(null); closePersonPopup(); };
         treeSelect(TREE_SEL);
         fitTree();
+      }
+      // ---------- Pop-up com os dados da pessoa ----------
+      var PM_NAME = null;
+      function openPersonPopup(p) {
+        PM_NAME = p.name;
+        document.getElementById("pm-content").innerHTML = personCard(p);
+        document.getElementById("person-modal").hidden = false;
+        document.body.style.overflow = "hidden";
+      }
+      function closePersonPopup() {
+        PM_NAME = null;
+        var m = document.getElementById("person-modal");
+        if (m) m.hidden = true;
+        document.body.style.overflow = "";
       }
       // ---------- Navegação da árvore: zoom e arrastar ----------
       var TREE_W = 0, TREE_H = 0, TZ = { k: 1, tx: 0, ty: 0 }, suppressTreeClick = false;
@@ -1437,6 +1469,13 @@
         renderTree();
         render();
         initTreeNav();
+        document.getElementById("pm-close").addEventListener("click", closePersonPopup);
+        document.getElementById("pm-backdrop").addEventListener("click", closePersonPopup);
+        document.getElementById("pm-content").addEventListener("click", function (e) {
+          var b = e.target.closest ? e.target.closest("[data-edit]") : null;
+          if (b) { closePersonPopup(); startEdit(Number(b.getAttribute("data-edit"))); }
+        });
+        document.addEventListener("keydown", function (e) { if (e.key === "Escape") closePersonPopup(); });
         document.getElementById("cadastro-form").addEventListener("submit", onCadastroSubmit);
         document.getElementById("add-toggle").addEventListener("click", function (e) {
           e.preventDefault();
