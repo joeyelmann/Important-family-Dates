@@ -1037,19 +1037,23 @@
         function cx(p) { return pos[p.name].x + CW / 2; }
         function top(p) { return pos[p.name].y; }
         function bot(p) { return pos[p.name].y + CH; }
+        // Uma curva individual de cada casal (do ponto médio entre os dois)
+        // direto para cada filho — sem barra horizontal compartilhada, para
+        // ficar claro quem é filho de quem.
         PEOPLE.forEach(function (p) {
           var ps = (p.parents || []).filter(function (n) { return byName[n]; });
           if (!ps.length) return;
+          var x2 = cx(p), y2 = top(p);
+          function curve(x1, y1) {
+            var dy = Math.max(24, (y2 - y1) / 2);
+            return "M " + x1 + " " + y1 + " C " + x1 + " " + (y1 + dy) + ", " + x2 + " " + (y2 - dy) + ", " + x2 + " " + y2;
+          }
           var d;
           if (ps.length === 2 && spouse[ps[0]] === ps[1] && gen[ps[0]] === gen[ps[1]]) {
-            var midY = (bot(byName[ps[0]]) + top(p)) / 2;
             var mx = (cx(byName[ps[0]]) + cx(byName[ps[1]])) / 2;
-            d = "M " + mx + " " + bot(byName[ps[0]]) + " V " + midY + " H " + cx(p) + " V " + top(p);
+            d = curve(mx, bot(byName[ps[0]]));
           } else {
-            d = ps.map(function (n) {
-              var my = (bot(byName[n]) + top(p)) / 2;
-              return "M " + cx(byName[n]) + " " + bot(byName[n]) + " V " + my + " H " + cx(p) + " V " + top(p);
-            }).join(" ");
+            d = ps.map(function (n) { return curve(cx(byName[n]), bot(byName[n])); }).join(" ");
           }
           canvas.appendChild(el("path", { "class": "t-link", d: d }));
         });
