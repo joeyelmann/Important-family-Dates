@@ -763,6 +763,9 @@
           var ps = (p.parents || []).filter(function (n) { return byName[n]; });
           if (ps.length === 2) { spouse[ps[0]] = ps[1]; spouse[ps[1]] = ps[0]; }
         });
+        PEOPLE.forEach(function (p) {
+          (p.spouses || []).forEach(function (n) { if (byName[n]) { spouse[p.name] = n; spouse[n] = p.name; } });
+        });
         var gen = {};
         var changed = true, guard = 0;
         while (changed && guard++ < 30) {
