@@ -476,7 +476,7 @@
           greg: "2016-04-22", night: true, hebrew: "15 de Nisan", hebMonth: "Nisan", hebDay: 15,
           nextHeb: "2027-04-22",
           note: "<strong>15 de Nisan</strong> cai sempre no 1º dia de Pessach." },
-        { name: "Gabriella", relation: "Filha", type: "aniversario",
+        { name: "Gabriella Orlowski El-Mann", relation: "Filha", type: "aniversario",
           greg: "2023-10-20", night: true, hebrew: "6 de Cheshvan", hebMonth: "Cheshvan", hebDay: 6,
           nextHeb: "2027-11-06" },
         { name: "Ronaldo Orlowski", relation: "Sogro — pai da Pri", type: "yahrzeit",
@@ -538,7 +538,7 @@
             var ng = nextAnnual(p);
             evs.push({ person: p, kind: "greg", date: ng,
               label: "Aniversário — " + (ng.getFullYear() - parseISO(p.greg).getFullYear()) + " anos",
-              sub: fmtDate(ng) + " · " + WEEKDAYS[ng.getDay()] });
+              sub: fmtDate(ng) + " · " + WEEKDAYS[ng.getDay()] + " · " + p.hebrew });
             evs.push({ person: p, kind: "heb", date: nh,
               label: "Aniversário hebraico — " + p.hebrew,
               sub: fmtDate(nh) + " · " + WEEKDAYS[nh.getDay()] });
