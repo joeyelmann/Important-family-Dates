@@ -577,45 +577,45 @@
       }
 
       var SEED_PEOPLE = [
-        { name: "Isaac Joseph El Mann", relation: "Pai", type: "aniversario",
+        { name: "Isaac Joseph El Mann", relation: "Filho de Joseph Eliahu", type: "aniversario",
           greg: "1950-07-17", night: false, hebrew: "3 de Av", hebMonth: "Av", hebDay: 3,
           nextHeb: "2027-08-06" },
-        { name: "Katia Maria El Mann", relation: "Mãe", type: "aniversario",
+        { name: "Katia Maria El Mann", relation: "Esposa de Isaac", type: "aniversario",
           greg: "1958-12-21", night: false, hebrew: "10 de Tevet", hebMonth: "Tevet", hebDay: 10,
           nextHeb: "2026-12-20",
           note: "<strong>10 de Tevet</strong> é dia de jejum (Asara B'Tevet)." },
-        { name: "Rony El Mann", relation: "Irmão", type: "aniversario",
+        { name: "Rony El Mann", relation: "Filho de Isaac e Katia", type: "aniversario",
           greg: "1984-02-16", parents: ["Isaac Joseph El Mann", "Katia Maria El Mann"], night: false, hebrew: "13 de Adar I", hebMonth: "Adar I", hebDay: 13,
           nextHeb: "2027-02-20",
           note: "Nasceu em <strong>Adar I</strong> (ano hebraico bissexto); em anos comuns, a data correspondente cai em Adar." },
-        { name: "Nathaly El Mann", relation: "Irmã", type: "aniversario",
+        { name: "Nathaly El Mann", relation: "Filha de Isaac e Katia", type: "aniversario",
           greg: "1989-05-31", parents: ["Isaac Joseph El Mann", "Katia Maria El Mann"], night: false, hebrew: "26 de Iyyar", hebMonth: "Iyyar", hebDay: 26,
           nextHeb: "2027-06-02" },
-        { name: "Mark El Mann", relation: "Irmão", type: "aniversario",
+        { name: "Mark El Mann", relation: "Filho de Isaac e Katia", type: "aniversario",
           greg: "1991-01-05", parents: ["Isaac Joseph El Mann", "Katia Maria El Mann"], night: false, hebrew: "19 de Tevet", hebMonth: "Tevet", hebDay: 19,
           nextHeb: "2026-12-29" },
-        { name: "Cheiva Orlowski", relation: "Sogra — mãe da Pri", type: "aniversario",
+        { name: "Cheiva Orlowski", relation: "Esposa de Ronaldo", type: "aniversario",
           greg: "1956-12-31", night: false, hebrew: "27 de Tevet", hebMonth: "Tevet", hebDay: 27,
           nextHeb: "2027-01-06" },
-        { name: "Breno Erick Orlowski", relation: "Cunhado — irmão da Pri", type: "aniversario",
+        { name: "Breno Erick Orlowski", relation: "Filho de Cheiva e Ronaldo", type: "aniversario",
           greg: "1994-09-15", parents: ["Cheiva Orlowski", "Ronaldo Orlowski"], night: true, hebrew: "11 de Tishrei", hebMonth: "Tishrei", hebDay: 11,
           nextHeb: "2027-10-12",
           note: "<strong>11 de Tishrei</strong> é o dia logo após o Yom Kipur (10 de Tishrei)." },
-        { name: "Priscilla Orlowski El-Mann", relation: "Esposa", type: "aniversario",
+        { name: "Priscilla Orlowski El-Mann", relation: "Filha de Cheiva e Ronaldo", type: "aniversario",
           greg: "1986-11-14", parents: ["Cheiva Orlowski", "Ronaldo Orlowski"], night: true, hebrew: "13 de Cheshvan", hebMonth: "Cheshvan", hebDay: 13,
           nextHeb: "2026-10-24" },
-        { name: "Joey El-Mann", relation: "Ele mesmo", type: "aniversario",
+        { name: "Joey El-Mann", relation: "Filho de Isaac e Katia", type: "aniversario",
           greg: "1982-07-28", parents: ["Isaac Joseph El Mann", "Katia Maria El Mann"], night: true, hebrew: "9 de Av", hebMonth: "Av", hebDay: 9,
           nextHeb: "2027-08-12",
           note: "<strong>9 de Av</strong> é Tisha B'Av, dia de jejum." },
-        { name: "Rafaella Orlowski El-Mann", relation: "Filha", type: "aniversario",
+        { name: "Rafaella Orlowski El-Mann", relation: "Filha de Joey e Priscilla", type: "aniversario",
           greg: "2016-04-22", parents: ["Joey El-Mann", "Priscilla Orlowski El-Mann"], night: true, hebrew: "15 de Nisan", hebMonth: "Nisan", hebDay: 15,
           nextHeb: "2027-04-22",
           note: "<strong>15 de Nisan</strong> cai sempre no 1º dia de Pessach." },
-        { name: "Gabriella Orlowski El-Mann", relation: "Filha", type: "aniversario",
+        { name: "Gabriella Orlowski El-Mann", relation: "Filha de Joey e Priscilla", type: "aniversario",
           greg: "2023-10-20", parents: ["Joey El-Mann", "Priscilla Orlowski El-Mann"], night: true, hebrew: "6 de Cheshvan", hebMonth: "Cheshvan", hebDay: 6,
           nextHeb: "2027-11-06" },
-        { name: "Ronaldo Orlowski", relation: "Sogro — pai da Pri", type: "yahrzeit",
+        { name: "Ronaldo Orlowski", relation: "Esposo de Cheiva", type: "yahrzeit",
           greg: "2022-05-04", night: true, hebrew: "4 de Iyyar", hebMonth: "Iyyar", hebDay: 4,
           nextHeb: "2027-05-11" }
       ];
@@ -943,37 +943,54 @@
         var CW = 172, CH = 64, HG = 26, VG = 96;
         var pos = {};
         rows.forEach(function (row, gi) {
-          row.sort(function (a, b) {
-            function key(p) {
-              var ps = (p.parents || []).filter(function (n) { return byName[n] && pos[n]; });
-              return ps.length ? ("000000" + pos[ps[0]].x).slice(-6) : "~~~~~~";
-            }
-            var ka = key(a), kb = key(b);
-            if (ka !== kb) return ka < kb ? -1 : 1;
-            return a.name < b.name ? -1 : 1;
-          });
-          var placed = [], used = {}, pulled = {};
+          // A fileira é montada por BLOCOS de irmãos (filhos dos mesmos pais),
+          // para não misturar os filhos de um casal com os de outro. Dentro do
+          // bloco, a ordem é por nascimento; quem casou com alguém de outro
+          // bloco vai para a borda do seu bloco, de frente para o bloco do
+          // cônjuge — o casal vira a dobradiça entre as duas famílias.
+          var groups = [], gmap = {}, singles = [];
           row.forEach(function (p) {
-            if (used[p.name]) return;
-            used[p.name] = true; placed.push(p);
-            var s = spouse[p.name];
-            if (s && byName[s] && gen[s] === gi && !used[s]) { used[s] = true; placed.push(byName[s]); pulled[s] = true; }
+            var ps = (p.parents || []).filter(function (n) { return byName[n]; });
+            if (!ps.length) { singles.push(p); return; }
+            var key = ps.slice().sort().join(" + ");
+            if (!gmap[key]) { gmap[key] = { members: [], parents: ps }; groups.push(gmap[key]); }
+            gmap[key].members.push(p);
           });
-          // Quem foi puxado para junto do cônjuge traz os irmãos solteiros para
-          // o seu outro lado (ex.: Breno ao lado da Pri, que está ao lado do Joey).
-          Object.keys(pulled).forEach(function (nm) {
-            var P = byName[nm];
-            if (!P || !P.parents || !P.parents.length) return;
-            placed.filter(function (q) {
-              return q !== P && !spouse[q.name] && (q.parents || []).some(function (n) { return P.parents.indexOf(n) >= 0; });
-            }).forEach(function (S) {
-              var sIdx = placed.indexOf(S), cur = placed.indexOf(P);
-              if (sIdx < 0 || cur < 0 || Math.abs(sIdx - cur) <= 1) return;
-              placed.splice(sIdx, 1);
-              cur = placed.indexOf(P);
-              var sp = spouse[P.name], spIdx = sp ? placed.indexOf(byName[sp]) : -1;
-              placed.splice(spIdx === cur - 1 || spIdx < 0 ? cur + 1 : cur, 0, S);
+          function parentMid(g) {
+            var xs = g.parents.filter(function (n) { return pos[n]; }).map(function (n) { return pos[n].x; });
+            return xs.length ? xs.reduce(function (a, b) { return a + b; }, 0) / xs.length : 1e12;
+          }
+          groups.sort(function (a, b) { return parentMid(a) - parentMid(b); });
+          var groupOf = {};
+          groups.forEach(function (g) { g.members.forEach(function (p) { groupOf[p.name] = g; }); });
+          groups.forEach(function (g) {
+            g.members.sort(function (a, b) { return a.greg < b.greg ? -1 : a.greg > b.greg ? 1 : (a.name < b.name ? -1 : 1); });
+            g.members.slice().forEach(function (p) {
+              var s = spouse[p.name];
+              if (!s || !byName[s] || gen[s] !== gi) return;
+              var sg = groupOf[s];
+              if (!sg || sg === g) return;
+              g.members.splice(g.members.indexOf(p), 1);
+              if (groups.indexOf(sg) > groups.indexOf(g)) g.members.push(p); else g.members.unshift(p);
             });
+          });
+          var placed = [], placedSet = {};
+          function placeWithSpouse(p) {
+            if (placedSet[p.name]) return;
+            placedSet[p.name] = true; placed.push(p);
+            var s = spouse[p.name];
+            if (s && byName[s] && gen[s] === gi && !placedSet[s] && !groupOf[s]) {
+              placedSet[s] = true; placed.push(byName[s]);
+            }
+          }
+          groups.forEach(function (g) { g.members.forEach(placeWithSpouse); });
+          singles.forEach(function (p) {
+            if (placedSet[p.name]) return;
+            var s = spouse[p.name];
+            if (s && placedSet[s]) {
+              placedSet[p.name] = true;
+              placed.splice(placed.indexOf(byName[s]) + 1, 0, p);
+            } else placeWithSpouse(p);
           });
           rows[gi] = placed;
           placed.forEach(function (p, i) { pos[p.name] = { x: i * (CW + HG) + 4, y: gi * (CH + VG) + 4 }; });
