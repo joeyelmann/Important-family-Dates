@@ -554,8 +554,8 @@
             </select>
           </div>
           <div class="seg view-tabs" role="group" aria-label="Modo de exibição" id="view-seg">
-            <button type="button" data-view="lista" aria-pressed="true">Lista</button>
-            <button type="button" data-view="greg" aria-pressed="false">Calendário gregoriano</button>
+            <button type="button" data-view="lista" aria-pressed="false">Lista</button>
+            <button type="button" data-view="greg" aria-pressed="true">Calendário gregoriano</button>
             <button type="button" data-view="heb" aria-pressed="false">Calendário hebraico</button>
           </div>
         </div>
@@ -768,7 +768,7 @@
       }
 
       /* ---------- Filtros ---------- */
-      var state = { q: "", type: "todos", month: "", hebMonth: "", person: "", sort: "proxima", view: "lista" };
+      var state = { q: "", type: "todos", month: "", hebMonth: "", person: "", sort: "proxima", view: "greg" };
 
       function fillSelects() {
         var mSel = document.getElementById("f-month");
