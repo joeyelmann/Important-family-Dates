@@ -1,0 +1,791 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="icon" href="data:," />
+    <title>Aniversários e Yahrzeits da Família</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Source+Sans+3:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: #faf8f3;
+        --surface: #ffffff;
+        --surface-2: #f3efe6;
+        --ink: #211d16;
+        --ink-soft: #5c564a;
+        --ink-faint: #8a8271;
+        --line: #e3dccb;
+        --gold: #9c7414;
+        --gold-strong: #7d5c0c;
+        --gold-soft: #f4ead0;
+        --slate: #46586b;
+        --slate-soft: #e6ebef;
+        --shadow: 0 1px 2px rgba(60, 48, 16, 0.06), 0 6px 20px rgba(60, 48, 16, 0.06);
+        --radius: 14px;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #16140f;
+          --surface: #201d16;
+          --surface-2: #29251b;
+          --ink: #f0ead9;
+          --ink-soft: #c4bba4;
+          --ink-faint: #978d76;
+          --line: #3a3527;
+          --gold: #d9ab3c;
+          --gold-strong: #ecc96a;
+          --gold-soft: #38301a;
+          --slate: #9db4c8;
+          --slate-soft: #26313c;
+          --shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+      }
+      * { box-sizing: border-box; }
+      html { -webkit-text-size-adjust: 100%; }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: "Source Sans 3", system-ui, -apple-system, "Segoe UI", sans-serif;
+        font-size: 16px;
+        line-height: 1.5;
+      }
+      .wrap { max-width: 1080px; margin: 0 auto; padding: 28px 18px 56px; }
+
+      header.page-head { padding: 10px 0 4px; }
+      .page-head h1 {
+        font-family: "Lora", Georgia, serif;
+        font-size: clamp(28px, 5.4vw, 42px);
+        font-weight: 600;
+        line-height: 1.15;
+        margin: 0 0 8px;
+        letter-spacing: -0.01em;
+      }
+      .page-head p {
+        margin: 0;
+        color: var(--ink-soft);
+        font-size: clamp(15px, 2.6vw, 17px);
+        max-width: 62ch;
+      }
+      .rule {
+        height: 3px;
+        width: 72px;
+        background: var(--gold);
+        border-radius: 2px;
+        margin: 20px 0 26px;
+      }
+
+      h2.section-title {
+        font-family: "Lora", Georgia, serif;
+        font-size: 21px;
+        font-weight: 600;
+        margin: 34px 0 14px;
+      }
+
+      /* ---------- Próximas datas ---------- */
+      .upcoming {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+        gap: 12px;
+      }
+      .up-card {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        padding: 14px 16px 13px;
+      }
+      .up-card .when {
+        font-size: 12.5px;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--gold-strong);
+        margin-bottom: 3px;
+      }
+      .up-card.yahrzeit .when { color: var(--slate); }
+      .up-card .who {
+        font-family: "Lora", Georgia, serif;
+        font-size: 18px;
+        font-weight: 600;
+        line-height: 1.25;
+      }
+      .up-card .what { color: var(--ink-soft); font-size: 14.5px; margin-top: 2px; }
+      .up-card .date { color: var(--ink-faint); font-size: 13.5px; margin-top: 6px; }
+
+      /* ---------- Controles ---------- */
+      .controls {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        padding: 16px;
+        margin-top: 8px;
+      }
+      .controls .row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+      }
+      .controls .row + .row { margin-top: 12px; }
+      .search-box { flex: 1 1 220px; position: relative; }
+      .search-box svg {
+        position: absolute; left: 11px; top: 50%; transform: translateY(-50%);
+        width: 17px; height: 17px; color: var(--ink-faint); pointer-events: none;
+      }
+      .search-box input {
+        width: 100%;
+        padding: 10px 12px 10px 36px;
+        font: inherit;
+        font-size: 15.5px;
+        color: var(--ink);
+        background: var(--bg);
+        border: 1px solid var(--line);
+        border-radius: 10px;
+      }
+      .search-box input:focus-visible, select:focus-visible, button:focus-visible {
+        outline: 2px solid var(--gold);
+        outline-offset: 1px;
+      }
+      select {
+        font: inherit;
+        font-size: 15px;
+        color: var(--ink);
+        background: var(--bg);
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 9px 10px;
+        max-width: 100%;
+      }
+      .field { display: flex; flex-direction: column; gap: 4px; flex: 0 1 auto; }
+      .field label {
+        font-size: 12px; font-weight: 700; letter-spacing: 0.05em;
+        text-transform: uppercase; color: var(--ink-faint);
+      }
+      .seg {
+        display: inline-flex;
+        background: var(--surface-2);
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        padding: 3px;
+        gap: 2px;
+        flex-wrap: wrap;
+      }
+      .seg button {
+        font: inherit;
+        font-size: 14.5px;
+        font-weight: 600;
+        border: 0;
+        background: transparent;
+        color: var(--ink-soft);
+        padding: 6px 14px;
+        border-radius: 999px;
+        cursor: pointer;
+      }
+      .seg button[aria-pressed="true"] {
+        background: var(--gold);
+        color: #fff;
+      }
+      @media (prefers-color-scheme: dark) {
+        .seg button[aria-pressed="true"] { color: #1d1807; }
+      }
+      .seg button:hover { color: var(--ink); }
+      .seg button[aria-pressed="true"]:hover { color: #fff; }
+      @media (prefers-color-scheme: dark) {
+        .seg button[aria-pressed="true"]:hover { color: #1d1807; }
+      }
+      .view-tabs { margin-left: auto; }
+      .result-count { color: var(--ink-faint); font-size: 14px; margin: 14px 2px 0; }
+
+      /* ---------- Lista de pessoas ---------- */
+      .person-list { display: flex; flex-direction: column; gap: 12px; margin-top: 12px; }
+      .person {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        padding: 16px 18px;
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+      @media (min-width: 760px) {
+        .person { grid-template-columns: minmax(190px, 1.2fr) 2fr; gap: 18px; }
+      }
+      .person .id-block .name {
+        font-family: "Lora", Georgia, serif;
+        font-size: 20px;
+        font-weight: 600;
+        line-height: 1.25;
+      }
+      .person .relation { color: var(--ink-soft); font-size: 14.5px; margin-top: 1px; }
+      .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; }
+      .chip {
+        font-size: 12.5px; font-weight: 700;
+        padding: 3px 9px; border-radius: 999px;
+        background: var(--gold-soft); color: var(--gold-strong);
+        display: inline-flex; align-items: center; gap: 5px;
+      }
+      .chip.yahrzeit { background: var(--slate-soft); color: var(--slate); }
+      .chip.neutral { background: var(--surface-2); color: var(--ink-soft); }
+      .chip svg { width: 12px; height: 12px; flex: none; }
+      .facts {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 10px 18px;
+        align-content: start;
+      }
+      .fact .k {
+        font-size: 11.5px; font-weight: 700; letter-spacing: 0.05em;
+        text-transform: uppercase; color: var(--ink-faint);
+      }
+      .fact .v { font-size: 15.5px; font-weight: 600; margin-top: 1px; }
+      .fact .v small { display: block; font-weight: 400; color: var(--ink-soft); font-size: 13.5px; }
+      .person .note {
+        grid-column: 1 / -1;
+        font-size: 14px;
+        color: var(--ink-soft);
+        background: var(--surface-2);
+        border-radius: 10px;
+        padding: 9px 12px;
+      }
+      .person .note strong { color: var(--ink); }
+
+      .empty {
+        text-align: center;
+        color: var(--ink-soft);
+        background: var(--surface);
+        border: 1px dashed var(--line);
+        border-radius: var(--radius);
+        padding: 34px 18px;
+        margin-top: 12px;
+      }
+      .empty button {
+        font: inherit; font-weight: 600; margin-top: 10px;
+        background: var(--gold); color: #fff; border: 0;
+        padding: 8px 18px; border-radius: 999px; cursor: pointer;
+      }
+      @media (prefers-color-scheme: dark) { .empty button { color: #1d1807; } }
+
+      /* ---------- Calendários ---------- */
+      .cal-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        gap: 12px;
+        margin-top: 12px;
+      }
+      .month-box {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        padding: 14px 16px;
+      }
+      .month-box h3 {
+        font-family: "Lora", Georgia, serif;
+        font-size: 17px; font-weight: 600; margin: 0 0 8px;
+        display: flex; justify-content: space-between; align-items: baseline; gap: 8px;
+      }
+      .month-box h3 .heb-name { font-size: 13px; color: var(--ink-faint); font-family: "Source Sans 3", sans-serif; font-weight: 600; }
+      .month-box ul { list-style: none; margin: 0; padding: 0; }
+      .month-box li {
+        display: flex; gap: 9px; align-items: baseline;
+        padding: 6px 0;
+        border-top: 1px solid var(--line);
+        font-size: 14.5px;
+      }
+      .month-box li:first-child { border-top: 0; }
+      .month-box .day {
+        font-weight: 700; color: var(--gold-strong);
+        min-width: 26px; text-align: right; flex: none;
+      }
+      .month-box li.yahrzeit .day { color: var(--slate); }
+      .month-box .who { font-weight: 600; }
+      .month-box .det { color: var(--ink-faint); font-size: 13px; display: block; }
+      .month-box .none { color: var(--ink-faint); font-size: 14px; font-style: italic; }
+
+      /* ---------- Notas ---------- */
+      .notes {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        padding: 18px 20px 8px;
+        margin-top: 12px;
+      }
+      .notes ul { margin: 0 0 10px; padding-left: 20px; }
+      .notes li { margin-bottom: 8px; color: var(--ink-soft); }
+      .notes li strong { color: var(--ink); }
+
+      footer {
+        margin-top: 36px;
+        color: var(--ink-faint);
+        font-size: 13.5px;
+        border-top: 1px solid var(--line);
+        padding-top: 14px;
+      }
+      .hidden { display: none !important; }
+    </style>
+  </head>
+  <body>
+    <main class="wrap">
+      <header class="page-head">
+        <h1>Aniversários e Yahrzeits da Família</h1>
+        <p>
+          Todas as datas da família em um só lugar — aniversários e yahrzeits com o dia no
+          calendário gregoriano e no calendário hebraico, para consultar por pessoa, por mês
+          ou pelo que vem a seguir.
+        </p>
+      </header>
+      <div class="rule" aria-hidden="true"></div>
+
+      <section aria-labelledby="prox-title">
+        <h2 class="section-title" id="prox-title" style="margin-top:0">Próximas datas</h2>
+        <div class="upcoming" id="upcoming"></div>
+      </section>
+
+      <h2 class="section-title">Consultar as datas</h2>
+      <section class="controls" aria-label="Busca e filtros">
+        <div class="row">
+          <div class="search-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+            <input type="search" id="q" placeholder="Buscar por nome…" aria-label="Buscar por nome" autocomplete="off" />
+          </div>
+          <div class="seg" role="group" aria-label="Tipo de data" id="type-seg">
+            <button type="button" data-type="todos" aria-pressed="true">Todas</button>
+            <button type="button" data-type="aniversario" aria-pressed="false">Aniversários</button>
+            <button type="button" data-type="yahrzeit" aria-pressed="false">Yahrzeits</button>
+          </div>
+        </div>
+        <div class="row">
+          <div class="field">
+            <label for="f-month">Mês (gregoriano)</label>
+            <select id="f-month">
+              <option value="">Todos os meses</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="f-hebmonth">Mês (hebraico)</label>
+            <select id="f-hebmonth">
+              <option value="">Todos os meses</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="f-person">Pessoa</label>
+            <select id="f-person">
+              <option value="">Todas as pessoas</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="f-sort">Ordenar por</label>
+            <select id="f-sort">
+              <option value="proxima">Próxima data</option>
+              <option value="nome">Nome (A–Z)</option>
+              <option value="mes">Mês do ano</option>
+            </select>
+          </div>
+          <div class="seg view-tabs" role="group" aria-label="Modo de exibição" id="view-seg">
+            <button type="button" data-view="lista" aria-pressed="true">Lista</button>
+            <button type="button" data-view="greg" aria-pressed="false">Calendário gregoriano</button>
+            <button type="button" data-view="heb" aria-pressed="false">Calendário hebraico</button>
+          </div>
+        </div>
+      </section>
+      <p class="result-count" id="result-count" role="status"></p>
+
+      <section id="view-lista" aria-label="Lista de pessoas"></section>
+
+      <section id="view-greg" class="hidden" aria-label="Calendário gregoriano">
+        <div class="cal-grid" id="cal-greg"></div>
+      </section>
+
+      <section id="view-heb" class="hidden" aria-label="Calendário hebraico">
+        <div class="cal-grid" id="cal-heb"></div>
+      </section>
+
+      <div class="empty hidden" id="empty">
+        <div>Nenhuma data encontrada com esses filtros.</div>
+        <button type="button" id="clear-filters">Limpar filtros</button>
+      </div>
+
+      <h2 class="section-title">Notas sobre as datas</h2>
+      <section class="notes" aria-label="Notas sobre as datas">
+        <ul>
+          <li><strong>À noite:</strong> quem nasceu ou faleceu após o pôr do sol já estava no dia hebraico seguinte — a data hebraica indicada já considera isso.</li>
+          <li><strong>Rafaella — 15 de Nisan:</strong> cai sempre no 1º dia de Pessach.</li>
+          <li><strong>Joey — 9 de Av:</strong> é Tisha B'Av, dia de jejum.</li>
+          <li><strong>Katia — 10 de Tevet:</strong> é dia de jejum (Asara B'Tevet).</li>
+          <li><strong>Breno — 11 de Tishrei:</strong> o dia logo após o Yom Kipur (10 de Tishrei).</li>
+          <li><strong>Rony — 13 de Adar I:</strong> ele nasceu em ano hebraico bissexto; em anos comuns, a data correspondente cai em Adar.</li>
+          <li><strong>Yahrzeit:</strong> é a data de falecimento lembrada a cada ano no calendário hebraico; diz-se “yahrzeit de N anos”, nunca “aniversário”.</li>
+        </ul>
+      </section>
+
+      <footer>
+        Datas gregorianas informadas pela família; conversões para o calendário hebraico
+        calculadas via Hebcal e conferidas em 19/10/2026. A coluna “próxima data hebraica”
+        mostra a próxima ocorrência de cada data hebraica a partir dessa conferência.
+      </footer>
+    </main>
+
+    <script>
+      "use strict";
+
+      /* Dados fixos da família (conferidos em 19/10/2026; fonte: Hebcal para as conversões). */
+      var PEOPLE = [
+        { name: "Isaac Joseph El Mann", relation: "Pai", type: "aniversario",
+          greg: "1950-07-17", night: false, hebrew: "3 de Av", hebMonth: "Av", hebDay: 3,
+          nextHeb: "2027-08-06" },
+        { name: "Katia Maria El Mann", relation: "Mãe", type: "aniversario",
+          greg: "1958-12-21", night: false, hebrew: "10 de Tevet", hebMonth: "Tevet", hebDay: 10,
+          nextHeb: "2026-12-20",
+          note: "<strong>10 de Tevet</strong> é dia de jejum (Asara B'Tevet)." },
+        { name: "Rony El Mann", relation: "Irmão", type: "aniversario",
+          greg: "1984-02-16", night: false, hebrew: "13 de Adar I", hebMonth: "Adar I", hebDay: 13,
+          nextHeb: "2027-02-20",
+          note: "Nasceu em <strong>Adar I</strong> (ano hebraico bissexto); em anos comuns, a data correspondente cai em Adar." },
+        { name: "Nathaly El Mann", relation: "Irmã", type: "aniversario",
+          greg: "1989-05-31", night: false, hebrew: "26 de Iyyar", hebMonth: "Iyyar", hebDay: 26,
+          nextHeb: "2027-06-02" },
+        { name: "Mark El Mann", relation: "Irmão", type: "aniversario",
+          greg: "1991-01-05", night: false, hebrew: "19 de Tevet", hebMonth: "Tevet", hebDay: 19,
+          nextHeb: "2026-12-29" },
+        { name: "Cheiva Orlowski", relation: "Sogra — mãe da Pri", type: "aniversario",
+          greg: "1956-12-31", night: false, hebrew: "27 de Tevet", hebMonth: "Tevet", hebDay: 27,
+          nextHeb: "2027-01-06" },
+        { name: "Breno Erick Orlowski", relation: "Cunhado — irmão da Pri", type: "aniversario",
+          greg: "1994-09-15", night: true, hebrew: "11 de Tishrei", hebMonth: "Tishrei", hebDay: 11,
+          nextHeb: "2027-10-12",
+          note: "<strong>11 de Tishrei</strong> é o dia logo após o Yom Kipur (10 de Tishrei)." },
+        { name: "Priscilla Orlowski El-Mann", relation: "Esposa", type: "aniversario",
+          greg: "1986-11-14", night: true, hebrew: "13 de Cheshvan", hebMonth: "Cheshvan", hebDay: 13,
+          nextHeb: "2026-10-24" },
+        { name: "Joey El-Mann", relation: "Ele mesmo", type: "aniversario",
+          greg: "1982-07-28", night: true, hebrew: "9 de Av", hebMonth: "Av", hebDay: 9,
+          nextHeb: "2027-08-12",
+          note: "<strong>9 de Av</strong> é Tisha B'Av, dia de jejum." },
+        { name: "Rafaella Orlowski El-Mann", relation: "Filha", type: "aniversario",
+          greg: "2016-04-22", night: true, hebrew: "15 de Nisan", hebMonth: "Nisan", hebDay: 15,
+          nextHeb: "2027-04-22",
+          note: "<strong>15 de Nisan</strong> cai sempre no 1º dia de Pessach." },
+        { name: "Gabriella", relation: "Filha", type: "aniversario",
+          greg: "2023-10-20", night: true, hebrew: "6 de Cheshvan", hebMonth: "Cheshvan", hebDay: 6,
+          nextHeb: "2027-11-06" },
+        { name: "Ronaldo Orlowski", relation: "Sogro — pai da Pri", type: "yahrzeit",
+          greg: "2022-05-04", night: true, hebrew: "4 de Iyyar", hebMonth: "Iyyar", hebDay: 4,
+          nextHeb: "2027-05-11" }
+      ];
+
+      var GREG_MONTHS = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+      var HEB_ORDER = ["Tishrei","Cheshvan","Kislev","Tevet","Shevat","Adar I","Adar II","Nisan","Iyyar","Sivan","Tammuz","Av","Elul"];
+      var WEEKDAYS = ["domingo","segunda-feira","terça-feira","quarta-feira","quinta-feira","sexta-feira","sábado"];
+
+      function parseISO(s) {
+        var p = s.split("-");
+        return new Date(+p[0], +p[1] - 1, +p[2]);
+      }
+      function todayStart() {
+        var n = new Date();
+        return new Date(n.getFullYear(), n.getMonth(), n.getDate());
+      }
+      function fmtDate(d) {
+        return d.getDate() + " de " + GREG_MONTHS[d.getMonth()].toLowerCase() + " de " + d.getFullYear();
+      }
+      function fmtShort(d) {
+        var dd = String(d.getDate()).padStart(2, "0");
+        var mm = String(d.getMonth() + 1).padStart(2, "0");
+        return dd + "/" + mm + "/" + d.getFullYear();
+      }
+      function daysUntil(d) {
+        return Math.round((d - todayStart()) / 86400000);
+      }
+      function relDays(d) {
+        var n = daysUntil(d);
+        if (n < 0) return null;
+        if (n === 0) return "Hoje";
+        if (n === 1) return "Amanhã";
+        return "Em " + n + " dias";
+      }
+      /* Próxima ocorrência anual (aniversário gregoriano) a partir de hoje. */
+      function nextAnnual(person) {
+        var b = parseISO(person.greg);
+        var t = todayStart();
+        var d = new Date(t.getFullYear(), b.getMonth(), b.getDate());
+        if (d < t) d = new Date(t.getFullYear() + 1, b.getMonth(), b.getDate());
+        return d;
+      }
+      function esc(s) {
+        return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+      }
+      function norm(s) {
+        return s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+      }
+
+      /* ---------- Próximas datas ---------- */
+      function buildEvents() {
+        var evs = [];
+        PEOPLE.forEach(function (p) {
+          var nh = parseISO(p.nextHeb);
+          if (p.type === "aniversario") {
+            var ng = nextAnnual(p);
+            evs.push({ person: p, kind: "greg", date: ng,
+              label: "Aniversário — " + (ng.getFullYear() - parseISO(p.greg).getFullYear()) + " anos",
+              sub: fmtDate(ng) + " · " + WEEKDAYS[ng.getDay()] });
+            evs.push({ person: p, kind: "heb", date: nh,
+              label: "Aniversário hebraico — " + p.hebrew,
+              sub: fmtDate(nh) + " · " + WEEKDAYS[nh.getDay()] });
+          } else {
+            evs.push({ person: p, kind: "heb", date: nh, yahrzeit: true,
+              label: "Yahrzeit de " + (nh.getFullYear() - parseISO(p.greg).getFullYear()) + " anos — " + p.hebrew,
+              sub: fmtDate(nh) + " · " + WEEKDAYS[nh.getDay()] });
+          }
+        });
+        return evs.filter(function (e) { return daysUntil(e.date) >= 0; })
+                  .sort(function (a, b) { return a.date - b.date; });
+      }
+      function renderUpcoming() {
+        var box = document.getElementById("upcoming");
+        var evs = buildEvents().slice(0, 4);
+        box.innerHTML = evs.map(function (e) {
+          return '<article class="up-card' + (e.yahrzeit ? " yahrzeit" : "") + '">' +
+            '<div class="when">' + esc(relDays(e.date) || "") + "</div>" +
+            '<div class="who">' + esc(e.person.name) + "</div>" +
+            '<div class="what">' + esc(e.label) + "</div>" +
+            '<div class="date">' + esc(e.sub) + "</div>" +
+            "</article>";
+        }).join("");
+      }
+
+      /* ---------- Filtros ---------- */
+      var state = { q: "", type: "todos", month: "", hebMonth: "", person: "", sort: "proxima", view: "lista" };
+
+      function fillSelects() {
+        var mSel = document.getElementById("f-month");
+        GREG_MONTHS.forEach(function (m, i) {
+          var o = document.createElement("option");
+          o.value = String(i + 1); o.textContent = m;
+          mSel.appendChild(o);
+        });
+        var hSel = document.getElementById("f-hebmonth");
+        HEB_ORDER.forEach(function (m) {
+          if (PEOPLE.some(function (p) { return p.hebMonth === m; })) {
+            var o = document.createElement("option");
+            o.value = m; o.textContent = m;
+            hSel.appendChild(o);
+          }
+        });
+        var pSel = document.getElementById("f-person");
+        PEOPLE.slice().sort(function (a, b) { return a.name.localeCompare(b.name, "pt-BR"); })
+          .forEach(function (p) {
+            var o = document.createElement("option");
+            o.value = p.name; o.textContent = p.name;
+            pSel.appendChild(o);
+          });
+      }
+
+      function filtered() {
+        var q = norm(state.q.trim());
+        var list = PEOPLE.filter(function (p) {
+          if (state.type !== "todos" && p.type !== state.type) return false;
+          if (state.month && parseISO(p.greg).getMonth() + 1 !== +state.month) return false;
+          if (state.hebMonth && p.hebMonth !== state.hebMonth) return false;
+          if (state.person && p.name !== state.person) return false;
+          if (q && norm(p.name).indexOf(q) === -1) return false;
+          return true;
+        });
+        if (state.sort === "nome") {
+          list.sort(function (a, b) { return a.name.localeCompare(b.name, "pt-BR"); });
+        } else if (state.sort === "mes") {
+          list.sort(function (a, b) {
+            var da = parseISO(a.greg), db = parseISO(b.greg);
+            return (da.getMonth() - db.getMonth()) || (da.getDate() - db.getDate()) || a.name.localeCompare(b.name, "pt-BR");
+          });
+        } else {
+          list.sort(function (a, b) {
+            var ea = Math.min(daysUntil(nextAnnual(a)), daysUntil(parseISO(a.nextHeb)));
+            var eb = Math.min(daysUntil(nextAnnual(b)), daysUntil(parseISO(b.nextHeb)));
+            if (a.type === "yahrzeit") ea = daysUntil(parseISO(a.nextHeb));
+            if (b.type === "yahrzeit") eb = daysUntil(parseISO(b.nextHeb));
+            return ea - eb;
+          });
+        }
+        return list;
+      }
+
+      var FLAME = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2c1 3-2.2 4.6-2.2 7a2.2 2.2 0 0 0 4.4 0c0-.8-.3-1.5-.7-2.2 2 1.3 3 3.2 3 5.2A4.5 4.5 0 0 1 12 16a4.5 4.5 0 0 1-4.5-4.5C7.5 7.5 11 5.5 12 2z"/><path d="M5 21h14v-2H5v2z"/></svg>';
+      var CAKE = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a1.5 1.5 0 0 1 1.5 1.5c0 .6-.3 1-.8 1.3V6h-1.4V4.8c-.5-.3-.8-.7-.8-1.3A1.5 1.5 0 0 1 12 2zM5 9h14a1 1 0 0 1 1 1v2H4v-2a1 1 0 0 1 1-1zm15 5v6a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-6h3v1.5A1.5 1.5 0 0 0 8.5 17 1.5 1.5 0 0 0 10 15.5V14h4v1.5A1.5 1.5 0 0 0 15.5 17 1.5 1.5 0 0 0 17 15.5V14h3z"/></svg>';
+
+      function personCard(p) {
+        var g = parseISO(p.greg);
+        var nh = parseISO(p.nextHeb);
+        var isY = p.type === "yahrzeit";
+        var chips = "";
+        if (isY) chips += '<span class="chip yahrzeit">' + FLAME + "Yahrzeit</span>";
+        else chips += '<span class="chip">' + CAKE + "Aniversário</span>";
+        if (p.night) chips += '<span class="chip neutral">à noite</span>';
+
+        var facts = "";
+        if (isY) {
+          facts += fact("Falecimento", fmtShort(g) + "<small>" + fmtDate(g) + "</small>");
+          facts += fact("Yahrzeit (data hebraica)", esc(p.hebrew));
+          facts += fact("Próximo yahrzeit",
+            fmtShort(nh) + "<small>" + fmtDate(nh) + " · yahrzeit de " +
+            (nh.getFullYear() - g.getFullYear()) + " anos" +
+            (relDays(nh) ? " · " + relDays(nh).toLowerCase() : "") + "</small>");
+        } else {
+          var ng = nextAnnual(p);
+          facts += fact("Nascimento", fmtShort(g) + "<small>" + fmtDate(g) + "</small>");
+          facts += fact("Data hebraica", esc(p.hebrew));
+          facts += fact("Próximo aniversário",
+            fmtShort(ng) + "<small>" + fmtDate(ng) + " · faz " +
+            (ng.getFullYear() - g.getFullYear()) + " anos" +
+            (relDays(ng) ? " · " + relDays(ng).toLowerCase() : "") + "</small>");
+          facts += fact("Próxima data hebraica",
+            fmtShort(nh) + "<small>" + fmtDate(nh) +
+            (relDays(nh) ? " · " + relDays(nh).toLowerCase() : "") + "</small>");
+        }
+        return '<article class="person">' +
+          '<div class="id-block"><div class="name">' + esc(p.name) + "</div>" +
+          '<div class="relation">' + esc(p.relation) + "</div>" +
+          '<div class="chips">' + chips + "</div></div>" +
+          '<div class="facts">' + facts + "</div>" +
+          (p.note ? '<div class="note">' + p.note + "</div>" : "") +
+          "</article>";
+      }
+      function fact(k, v) {
+        return '<div class="fact"><div class="k">' + k + '</div><div class="v">' + v + "</div></div>";
+      }
+
+      function renderList(list) {
+        var box = document.getElementById("view-lista");
+        box.innerHTML = '<div class="person-list">' + list.map(personCard).join("") + "</div>";
+      }
+
+      function renderGregCal(list) {
+        var box = document.getElementById("cal-greg");
+        var html = "";
+        for (var m = 0; m < 12; m++) {
+          var items = list.filter(function (p) { return parseISO(p.greg).getMonth() === m; })
+            .sort(function (a, b) { return parseISO(a.greg).getDate() - parseISO(b.greg).getDate(); });
+          html += '<div class="month-box"><h3>' + GREG_MONTHS[m] + "</h3>";
+          if (!items.length) {
+            html += '<p class="none">Sem datas neste mês.</p>';
+          } else {
+            html += "<ul>" + items.map(function (p) {
+              var g = parseISO(p.greg);
+              var det = p.type === "yahrzeit"
+                ? "Yahrzeit · " + p.hebrew
+                : p.hebrew + (p.night ? " · à noite" : "");
+              return '<li class="' + (p.type === "yahrzeit" ? "yahrzeit" : "") + '">' +
+                '<span class="day">' + g.getDate() + "</span>" +
+                '<span><span class="who">' + esc(p.name) + "</span>" +
+                '<span class="det">' + esc(det) + "</span></span></li>";
+            }).join("") + "</ul>";
+          }
+          html += "</div>";
+        }
+        box.innerHTML = html;
+      }
+
+      function renderHebCal(list) {
+        var box = document.getElementById("cal-heb");
+        var html = "";
+        HEB_ORDER.forEach(function (hm) {
+          var items = list.filter(function (p) { return p.hebMonth === hm; })
+            .sort(function (a, b) { return a.hebDay - b.hebDay; });
+          if (!items.length) return;
+          html += '<div class="month-box"><h3>' + hm + "</h3><ul>" +
+            items.map(function (p) {
+              var g = parseISO(p.greg);
+              var det = (p.type === "yahrzeit" ? "Yahrzeit · falecimento em " : "Nasceu em ") +
+                fmtShort(g) + (p.night ? " · à noite" : "");
+              return '<li class="' + (p.type === "yahrzeit" ? "yahrzeit" : "") + '">' +
+                '<span class="day">' + p.hebDay + "</span>" +
+                '<span><span class="who">' + esc(p.name) + "</span>" +
+                '<span class="det">' + esc(det) + "</span></span></li>";
+            }).join("") + "</ul></div>";
+        });
+        box.innerHTML = html || '<p class="none">Sem datas nos meses hebraicos com os filtros atuais.</p>';
+      }
+
+      function render() {
+        var list = filtered();
+        var count = document.getElementById("result-count");
+        var empty = document.getElementById("empty");
+        var b = list.filter(function (p) { return p.type === "aniversario"; }).length;
+        var y = list.length - b;
+        var parts = [];
+        if (b) parts.push(b + (b === 1 ? " aniversário" : " aniversários"));
+        if (y) parts.push(y + (y === 1 ? " yahrzeit" : " yahrzeits"));
+        count.textContent = list.length ? parts.join(" · ") : "";
+
+        document.getElementById("view-lista").classList.toggle("hidden", state.view !== "lista");
+        document.getElementById("view-greg").classList.toggle("hidden", state.view !== "greg");
+        document.getElementById("view-heb").classList.toggle("hidden", state.view !== "heb");
+        empty.classList.toggle("hidden", list.length > 0);
+
+        if (state.view === "lista") renderList(list);
+        else if (state.view === "greg") renderGregCal(list);
+        else renderHebCal(list);
+      }
+
+      function segWire(id, attr, apply) {
+        var seg = document.getElementById(id);
+        seg.addEventListener("click", function (ev) {
+          var btn = ev.target.closest("button");
+          if (!btn) return;
+          seg.querySelectorAll("button").forEach(function (x) { x.setAttribute("aria-pressed", "false"); });
+          btn.setAttribute("aria-pressed", "true");
+          apply(btn.getAttribute(attr));
+          render();
+        });
+      }
+
+      function init() {
+        fillSelects();
+        renderUpcoming();
+        render();
+
+        document.getElementById("q").addEventListener("input", function (e) {
+          state.q = e.target.value; render();
+        });
+        document.getElementById("f-month").addEventListener("change", function (e) {
+          state.month = e.target.value; render();
+        });
+        document.getElementById("f-hebmonth").addEventListener("change", function (e) {
+          state.hebMonth = e.target.value; render();
+        });
+        document.getElementById("f-person").addEventListener("change", function (e) {
+          state.person = e.target.value; render();
+        });
+        document.getElementById("f-sort").addEventListener("change", function (e) {
+          state.sort = e.target.value; render();
+        });
+        segWire("type-seg", "data-type", function (v) { state.type = v; });
+        segWire("view-seg", "data-view", function (v) { state.view = v; });
+        document.getElementById("clear-filters").addEventListener("click", function () {
+          state = { q: "", type: "todos", month: "", hebMonth: "", person: "", sort: "proxima", view: state.view };
+          document.getElementById("q").value = "";
+          document.getElementById("f-month").value = "";
+          document.getElementById("f-hebmonth").value = "";
+          document.getElementById("f-person").value = "";
+          document.getElementById("f-sort").value = "proxima";
+          document.querySelectorAll("#type-seg button").forEach(function (x) {
+            x.setAttribute("aria-pressed", x.getAttribute("data-type") === "todos" ? "true" : "false");
+          });
+          render();
+        });
+      }
+
+      document.addEventListener("DOMContentLoaded", init);
+    </script>
+  </body>
+</html>
