@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="color-scheme" content="light dark" />
     <link rel="icon" href="data:," />
-    <title>Aniversários e Meldados da Família</title>
+    <title>Aniversários e Mishmarás da Família</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -379,9 +379,9 @@
   <body>
     <main class="wrap">
       <header class="page-head">
-        <h1>Aniversários e Meldados da Família</h1>
+        <h1>Aniversários e Mishmarás da Família</h1>
         <p>
-          Todas as datas da família em um só lugar — aniversários e meldados com o dia no
+          Todas as datas da família em um só lugar — aniversários e mishmarás com o dia no
           calendário gregoriano e no calendário hebraico, para consultar por pessoa, por mês
           ou pelo que vem a seguir.
         </p>
@@ -401,11 +401,11 @@
       <div class="tree-wrap"><svg id="tree" role="img" aria-label="&#193;rvore geneal&#243;gica da fam&#237;lia"></svg></div>
 
       <h2 class="section-title" id="cadastro">Adicionar pessoa</h2>
-      <p class="tree-hint">Preencha o b&#225;sico — a data hebraica &#233; calculada automaticamente e a p&#225;gina se atualiza na hora. Para anivers&#225;rio, a data principal &#233; o nascimento; para meldado, o falecimento — a outra data &#233; opcional.</p>
+      <p class="tree-hint">Preencha o b&#225;sico — a data hebraica &#233; calculada automaticamente e a p&#225;gina se atualiza na hora. Para anivers&#225;rio, a data principal &#233; o nascimento; para mishmará, o falecimento — a outra data &#233; opcional.</p>
       <form id="cadastro-form" class="cad-form" aria-label="Adicionar pessoa">
         <div class="cad-row">
           <label>Nome completo*<input id="c-nome" type="text" required autocomplete="off" maxlength="80"></label>
-          <label>Tipo*<select id="c-tipo" required><option value="aniversario">Anivers&#225;rio (nascimento)</option><option value="yahrzeit">Meldado (falecimento)</option></select></label>
+          <label>Tipo*<select id="c-tipo" required><option value="aniversario">Anivers&#225;rio (nascimento)</option><option value="yahrzeit">Mishmará (falecimento)</option></select></label>
         </div>
         <div class="cad-row">
           <label>Data de nascimento<input id="c-nasc" type="date"></label>
@@ -437,7 +437,7 @@
           <div class="seg" role="group" aria-label="Tipo de data" id="type-seg">
             <button type="button" data-type="todos" aria-pressed="true">Todas</button>
             <button type="button" data-type="aniversario" aria-pressed="false">Aniversários</button>
-            <button type="button" data-type="yahrzeit" aria-pressed="false">Meldados</button>
+            <button type="button" data-type="yahrzeit" aria-pressed="false">Mishmarás</button>
           </div>
         </div>
         <div class="row">
@@ -500,7 +500,7 @@
           <li><strong>Katia — 10 de Tevet:</strong> é dia de jejum (Asara B'Tevet).</li>
           <li><strong>Breno — 11 de Tishrei:</strong> o dia logo após o Yom Kipur (10 de Tishrei).</li>
           <li><strong>Rony — 13 de Adar I:</strong> ele nasceu em ano hebraico bissexto; em anos comuns, a data correspondente cai em Adar.</li>
-          <li><strong>Meldado:</strong> é a data de falecimento lembrada a cada ano no calendário hebraico (o nome do costume Edot Mizrach; entre ashkenazim, yahrzeit); diz-se “meldado de N anos”, nunca “aniversário”.</li>
+          <li><strong>Mishmará:</strong> é a data de falecimento lembrada a cada ano no calendário hebraico (o nome do costume Edot Mizrach; entre ashkenazim, yahrzeit); diz-se “mishmará de N anos”, nunca “aniversário”.</li>
         </ul>
       </section>
 
@@ -657,7 +657,7 @@
               sub: fmtDate(nh) + " · " + WEEKDAYS[nh.getDay()] });
           } else {
             evs.push({ person: p, kind: "heb", date: nh, yahrzeit: true,
-              label: "Meldado de " + (nh.getFullYear() - parseISO(p.greg).getFullYear()) + " anos — " + p.hebrew,
+              label: "Mishmará de " + (nh.getFullYear() - parseISO(p.greg).getFullYear()) + " anos — " + p.hebrew,
               sub: fmtDate(nh) + " · " + WEEKDAYS[nh.getDay()] });
           }
         });
@@ -741,7 +741,7 @@
         var nh = parseISO(p.nextHeb);
         var isY = p.type === "yahrzeit";
         var chips = "";
-        if (isY) chips += '<span class="chip yahrzeit">' + FLAME + "Meldado</span>";
+        if (isY) chips += '<span class="chip yahrzeit">' + FLAME + "Mishmará</span>";
         else chips += '<span class="chip">' + CAKE + "Aniversário</span>";
         if (p.night) chips += '<span class="chip neutral">à noite</span>';
 
@@ -749,9 +749,9 @@
         if (isY) {
           if (p.birth) { var pb = parseISO(p.birth); facts += fact("Nascimento", fmtShort(pb) + "<small>" + fmtDate(pb) + "</small>"); }
           facts += fact("Falecimento", fmtShort(g) + "<small>" + fmtDate(g) + "</small>");
-          facts += fact("Meldado (data hebraica)", esc(p.hebrew));
-          facts += fact("Próximo meldado",
-            fmtShort(nh) + "<small>" + fmtDate(nh) + " · meldado de " +
+          facts += fact("Mishmará (data hebraica)", esc(p.hebrew));
+          facts += fact("Próximo mishmará",
+            fmtShort(nh) + "<small>" + fmtDate(nh) + " · mishmará de " +
             (nh.getFullYear() - g.getFullYear()) + " anos" +
             (relDays(nh) ? " · " + relDays(nh).toLowerCase() : "") + "</small>");
         } else {
@@ -797,7 +797,7 @@
             html += "<ul>" + items.map(function (p) {
               var g = parseISO(p.greg);
               var det = p.type === "yahrzeit"
-                ? "Meldado · " + p.hebrew
+                ? "Mishmará · " + p.hebrew
                 : p.hebrew + (p.night ? " · à noite" : "");
               return '<li class="' + (p.type === "yahrzeit" ? "yahrzeit" : "") + '">' +
                 '<span class="day">' + g.getDate() + "</span>" +
@@ -820,7 +820,7 @@
           html += '<div class="month-box"><h3>' + hm + "</h3><ul>" +
             items.map(function (p) {
               var g = parseISO(p.greg);
-              var det = (p.type === "yahrzeit" ? "Meldado · falecimento em " : "Nasceu em ") +
+              var det = (p.type === "yahrzeit" ? "Mishmará · falecimento em " : "Nasceu em ") +
                 fmtShort(g) + (p.night ? " · à noite" : "");
               return '<li class="' + (p.type === "yahrzeit" ? "yahrzeit" : "") + '">' +
                 '<span class="day">' + p.hebDay + "</span>" +
@@ -972,7 +972,7 @@
           var sub = el("text", { "class": "t-sub", x: cx(p), y: pos[p.name].y + CH - 9, "text-anchor": "middle" });
           var yr = parseISO(p.greg).getFullYear();
           if (p.birth && p.death) sub.textContent = parseISO(p.birth).getFullYear() + " \u2013 " + parseISO(p.death).getFullYear();
-          else sub.textContent = p.type === "yahrzeit" ? "meldado \u00B7 " + yr : "" + yr;
+          else sub.textContent = p.type === "yahrzeit" ? "mishmará \u00B7 " + yr : "" + yr;
           g.appendChild(sub);
           g.addEventListener("click", function (ev) { ev.stopPropagation(); treeSelect(p.name === TREE_SEL ? null : p.name); });
           svg.appendChild(g);
@@ -1144,7 +1144,7 @@
         var y = list.length - b;
         var parts = [];
         if (b) parts.push(b + (b === 1 ? " aniversário" : " aniversários"));
-        if (y) parts.push(y + (y === 1 ? " meldado" : " meldados"));
+        if (y) parts.push(y + (y === 1 ? " mishmará" : " mishmarás"));
         count.textContent = list.length ? parts.join(" · ") : "";
 
         document.getElementById("view-lista").classList.toggle("hidden", state.view !== "lista");
