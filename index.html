@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="color-scheme" content="light dark" />
     <link rel="icon" href="data:," />
-    <title>História da Família El Mann</title>
+    <title>Árvore e Datas das Famílias</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -100,7 +100,7 @@
       .tree-wrap { overflow-x: auto; padding-bottom: 8px; }
       .tree-wrap svg { display: block; }
       #tree .t-link { stroke: var(--line); stroke-width: 1.6; fill: none; }
-      #tree .t-spouse { stroke: var(--gold); stroke-width: 2; }
+      #tree .t-spouse { stroke: var(--gold); stroke-width: 2; fill: none; }
       #tree .t-card { cursor: pointer; }
       #tree .t-card rect { fill: #fff; stroke: var(--line); stroke-width: 1.2; }
       #tree .t-card text { fill: #26221a; font-family: "Source Sans 3", Arial, sans-serif; }
@@ -124,6 +124,7 @@
       .cad-check { justify-content: center; }
       .cad-check .chk { display: flex; align-items: center; gap: 8px; font-size: 15px; cursor: pointer; padding-top: 22px; }
       .cad-check input { width: 20px; height: 20px; padding: 0; }
+      .person .bio { font-size: 13.5px; color: #55534c; margin-top: 8px; line-height: 1.45; }
       .edit-btn { margin-top: 8px; padding: 4px 12px; border: 1px solid var(--line); border-radius: 999px; background: #fff; font-size: 12.5px; cursor: pointer; font-family: inherit; color: inherit; }
       .edit-btn:hover { background: #faf6ec; }
       .cad-mode { font-size: 14.5px; font-weight: 700; margin: 0 0 12px; }
@@ -386,7 +387,7 @@
   <body>
     <main class="wrap">
       <header class="page-head">
-        <h1>História da Família El Mann</h1>
+        <h1>Árvore e Datas das Famílias</h1>
         <p>
           Todas as datas da família em um só lugar — aniversários e mishmarás com o dia no
           calendário gregoriano e no calendário hebraico, para consultar por pessoa, por mês
@@ -423,6 +424,10 @@
         <div class="cad-row">
           <label>Data de casamento (opcional)<input id="c-casamento" type="date"></label>
           <label><span id="c-noite-txt">O nascimento foi &#224; noite (depois do p&#244;r do sol)?</span>*<select id="c-noite" required><option value="N&#227;o">N&#227;o</option><option value="Sim">Sim</option><option value="N&#227;o sei">N&#227;o sei</option></select></label>
+        </div>
+        <div class="cad-row">
+          <label>Cidade de nascimento (opcional)<input id="c-cidade" type="text" autocomplete="off" maxlength="60"></label>
+          <label>Bio (opcional)<input id="c-bio" type="text" autocomplete="off" maxlength="280" placeholder="Uma linha sobre a pessoa"></label>
         </div>
         <div class="cad-row" id="c-link-row">
           <label>Qual &#233; a rela&#231;&#227;o com a fam&#237;lia?*<select id="c-relacao" required></select></label>
@@ -537,7 +542,7 @@
         return { id: r.id, name: r.name, relation: r.relation || "", type: r.type, greg: r.greg, night: !!r.night,
           hebrew: r.hebrew, hebMonth: r.heb_month, hebDay: r.heb_day, nextHeb: r.next_heb,
           parents: r.parents || [], spouses: r.spouses || [], note: r.note || "",
-          birth: r.birth || null, death: r.death || null, wedding: r.wedding || null };
+          birth: r.birth || null, death: r.death || null, wedding: r.wedding || null, bio: r.bio || "", birthCity: r.birth_city || "" };
       }
       async function loadMembers() {
         try {
@@ -758,7 +763,7 @@
 
         var facts = "";
         if (isY) {
-          if (p.birth) { var pb = parseISO(p.birth); facts += fact("Nascimento", fmtShort(pb) + "<small>" + fmtDate(pb) + "</small>"); }
+          if (p.birth) { var pb = parseISO(p.birth); facts += fact("Nascimento", fmtShort(pb) + "<small>" + fmtDate(pb) + (p.birthCity ? " · " + esc(p.birthCity) : "") + "</small>"); }
           facts += fact("Falecimento", fmtShort(g) + "<small>" + fmtDate(g) + "</small>");
           if (p.wedding) { var pw1 = parseISO(p.wedding); facts += fact("Casamento", fmtShort(pw1) + "<small>" + fmtDate(pw1) + "</small>"); }
           facts += fact("Mishmará (data hebraica)", esc(p.hebrew));
@@ -768,7 +773,7 @@
             (relDays(nh) ? " · " + relDays(nh).toLowerCase() : "") + "</small>");
         } else {
           var ng = nextAnnual(p);
-          facts += fact("Nascimento", fmtShort(g) + "<small>" + fmtDate(g) + "</small>");
+          facts += fact("Nascimento", fmtShort(g) + "<small>" + fmtDate(g) + (p.birthCity ? " · " + esc(p.birthCity) : "") + "</small>");
           if (p.death) { var pd = parseISO(p.death); facts += fact("Falecimento", fmtShort(pd) + "<small>" + fmtDate(pd) + "</small>"); }
           if (p.wedding) { var pw2 = parseISO(p.wedding); facts += fact("Casamento", fmtShort(pw2) + "<small>" + fmtDate(pw2) + "</small>"); }
           facts += fact("Data hebraica", esc(p.hebrew));
@@ -786,6 +791,7 @@
           '<div class="chips">' + chips + "</div>" +
           (p.id ? '<button type="button" class="edit-btn" data-edit="' + p.id + '">\u270f\ufe0f Editar</button>' : "") + "</div>" +
           '<div class="facts">' + facts + "</div>" +
+          (p.bio ? '<div class="bio">' + esc(p.bio) + "</div>" : "") +
           (p.note ? '<div class="note">' + p.note + "</div>" : "") +
           "</article>";
       }
@@ -874,17 +880,19 @@
           });
         }
         PEOPLE.forEach(function (p) { if (gen[p.name] === undefined) gen[p.name] = 0; });
-        // Cônjuges ficam na mesma geração (um ao lado do outro); filhos, abaixo dos pais.
+        // A geração de sangue manda: irmãos ficam juntos. Quem casou na família
+        // e não tem pais na página assume a geração do cônjuge (Katia ao lado do
+        // Isaac); quem tem pais na página mantém a própria geração (Pri ao lado
+        // do Breno, mesmo casada com o Joey). Filhos sempre abaixo dos dois pais.
         changed = true; guard = 0;
         while (changed && guard++ < 60) {
           changed = false;
           PEOPLE.forEach(function (p) {
-            var s = spouse[p.name];
-            if (s && gen[s] !== gen[p.name]) {
-              var mx = Math.max(gen[s], gen[p.name]);
-              gen[p.name] = mx; gen[s] = mx; changed = true;
-            }
             var ps = (p.parents || []).filter(function (n) { return byName[n]; });
+            if (!ps.length) {
+              var s = spouse[p.name];
+              if (s && gen[s] > gen[p.name]) { gen[p.name] = gen[s]; changed = true; }
+            }
             if (ps.length) {
               var need = Math.max.apply(null, ps.map(function (n) { return gen[n]; })) + 1;
               if (gen[p.name] < need) { gen[p.name] = need; changed = true; }
@@ -952,14 +960,15 @@
         PEOPLE.forEach(function (p) {
           var ps = (p.parents || []).filter(function (n) { return byName[n]; });
           if (!ps.length) return;
-          var midY = (bot(byName[ps[0]]) + top(p)) / 2;
           var d;
-          if (ps.length === 2 && spouse[ps[0]] === ps[1]) {
+          if (ps.length === 2 && spouse[ps[0]] === ps[1] && gen[ps[0]] === gen[ps[1]]) {
+            var midY = (bot(byName[ps[0]]) + top(p)) / 2;
             var mx = (cx(byName[ps[0]]) + cx(byName[ps[1]])) / 2;
             d = "M " + mx + " " + bot(byName[ps[0]]) + " V " + midY + " H " + cx(p) + " V " + top(p);
           } else {
             d = ps.map(function (n) {
-              return "M " + cx(byName[n]) + " " + bot(byName[n]) + " V " + midY + " H " + cx(p) + " V " + top(p);
+              var my = (bot(byName[n]) + top(p)) / 2;
+              return "M " + cx(byName[n]) + " " + bot(byName[n]) + " V " + my + " H " + cx(p) + " V " + top(p);
             }).join(" ");
           }
           svg.appendChild(el("path", { "class": "t-link", d: d }));
@@ -967,13 +976,20 @@
         var doneSpouse = {};
         PEOPLE.forEach(function (p) {
           var s = spouse[p.name];
-          if (!s || doneSpouse[p.name] || gen[s] !== gen[p.name]) return;
+          if (!s || doneSpouse[p.name]) return;
           doneSpouse[p.name] = doneSpouse[s] = true;
-          if (Math.abs(pos[p.name].x - pos[s].x) > CW + HG + 1) return;
-          var left = pos[p.name].x < pos[s].x ? pos[p.name] : pos[s];
-          var right = pos[p.name].x < pos[s].x ? pos[s] : pos[p.name];
-          var y = pos[p.name].y + CH / 2;
-          svg.appendChild(el("line", { "class": "t-spouse", x1: left.x + CW, y1: y, x2: right.x, y2: y }));
+          var a = pos[p.name], b = pos[s];
+          if (gen[s] === gen[p.name]) {
+            if (Math.abs(a.x - b.x) > CW + HG + 1) return;
+            var left = a.x < b.x ? a : b, right = a.x < b.x ? b : a;
+            var y = a.y + CH / 2;
+            svg.appendChild(el("line", { "class": "t-spouse", x1: left.x + CW, y1: y, x2: right.x, y2: y }));
+          } else {
+            var up = a.y < b.y ? a : b, dn = a.y < b.y ? b : a;
+            var my2 = (up.y + CH + dn.y) / 2;
+            var dd = "M " + (up.x + CW / 2) + " " + (up.y + CH) + " V " + my2 + " H " + (dn.x + CW / 2) + " V " + dn.y;
+            svg.appendChild(el("path", { "class": "t-spouse", d: dd }));
+          }
         });
         PEOPLE.forEach(function (p) {
           var g = el("g", { "class": "t-card" + (p.type === "yahrzeit" ? " yahrzeit" : ""), "data-name": p.name });
@@ -1121,6 +1137,8 @@
         document.getElementById("c-fal").value = fal;
         setFaleceuUI(!!fal);
         document.getElementById("c-casamento").value = p.wedding || "";
+        document.getElementById("c-cidade").value = p.birthCity || "";
+        document.getElementById("c-bio").value = p.bio || "";
         document.getElementById("c-noite").value = p.night ? "Sim" : "Não";
         document.getElementById("c-senha").value = "";
         document.getElementById("c-link-row").style.display = "none";
@@ -1155,6 +1173,8 @@
         var data = tipo === "yahrzeit" ? fal : nasc;
         var noite = document.getElementById("c-noite").value;
         var casamento = document.getElementById("c-casamento").value || null;
+        var cidade = document.getElementById("c-cidade").value.trim();
+        var bio = document.getElementById("c-bio").value.trim();
         var relacao = document.getElementById("c-relacao").value;
         var comQuem = document.getElementById("c-comquem").value;
         var senha = document.getElementById("c-senha").value;
@@ -1175,7 +1195,7 @@
             var ubody = { p_id: EDIT_ID, p_name: nome, p_relation: cur ? cur.relation : "", p_type: tipo, p_greg: data,
               p_night: noite === "Sim", p_hebrew: h.day + " de " + h.month, p_heb_month: h.month, p_heb_day: h.day,
               p_next_heb: nextHeb, p_birth: nasc || null, p_death: tipo === "yahrzeit" ? fal : null,
-              p_wedding: casamento, p_passphrase: senha };
+              p_wedding: casamento, p_bio: bio, p_birth_city: cidade, p_passphrase: senha };
             var ures = await fetch(SUPABASE_URL + "/rest/v1/rpc/update_member", { method: "POST", headers: sbHeaders(), body: JSON.stringify(ubody) });
             if (!ures.ok) throw new Error(sbErrorText(await ures.text()));
             var spName = cur ? SPOUSES[cur.name] : null;
@@ -1209,6 +1229,11 @@
                   await fetch(SUPABASE_URL + "/rest/v1/rpc/set_wedding", { method: "POST", headers: sbHeaders(), body: JSON.stringify({ p_id: BYNAME[comQuem].id, p_wedding: casamento, p_passphrase: senha }) });
                 } catch (e5) {}
               }
+            }
+            if (bio || cidade) {
+              try {
+                await fetch(SUPABASE_URL + "/rest/v1/rpc/set_profile", { method: "POST", headers: sbHeaders(), body: JSON.stringify({ p_id: newId, p_bio: bio, p_birth_city: cidade, p_passphrase: senha }) });
+              } catch (e6) {}
             }
             status.classList.add("ok");
             status.textContent = "✓ " + nome + " adicionado (" + h.day + " de " + h.month + "). Recarregando a página…";
