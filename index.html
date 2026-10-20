@@ -888,23 +888,33 @@
           });
         }
         PEOPLE.forEach(function (p) { if (gen[p.name] === undefined) gen[p.name] = 0; });
-        // A geração de sangue manda: irmãos ficam juntos. Quem casou na família
-        // e não tem pais na página assume a geração do cônjuge (Katia ao lado do
-        // Isaac); quem tem pais na página mantém a própria geração (Pri ao lado
-        // do Breno, mesmo casada com o Joey). Filhos sempre abaixo dos dois pais.
+        // Casais ficam sempre na mesma geração, lado a lado, e os filhos abaixo
+        // dos dois pais. Os pais dos dois lados de um casal (os consogros) também
+        // se alinham na mesma geração: é isso que põe Isaac+Katia e Cheiva+Ronaldo
+        // na mesma fileira e deixa a Pri ao lado do Joey E do irmão Breno.
+        // Irmãos compartilham os pais, logo caem todos na mesma geração.
         changed = true; guard = 0;
         while (changed && guard++ < 60) {
           changed = false;
           PEOPLE.forEach(function (p) {
-            var ps = (p.parents || []).filter(function (n) { return byName[n]; });
-            if (!ps.length) {
-              var s = spouse[p.name];
-              if (s && gen[s] > gen[p.name]) { gen[p.name] = gen[s]; changed = true; }
+            var s = spouse[p.name];
+            if (s && gen[s] !== gen[p.name]) {
+              var mx = Math.max(gen[s], gen[p.name]);
+              gen[p.name] = mx; gen[s] = mx; changed = true;
             }
+            var ps = (p.parents || []).filter(function (n) { return byName[n]; });
             if (ps.length) {
               var need = Math.max.apply(null, ps.map(function (n) { return gen[n]; })) + 1;
               if (gen[p.name] < need) { gen[p.name] = need; changed = true; }
             }
+          });
+          PEOPLE.forEach(function (p) {
+            var s = spouse[p.name];
+            if (!s) return;
+            var all = (p.parents || []).concat(byName[s].parents || []).filter(function (n) { return byName[n]; });
+            if (!all.length) return;
+            var mx = Math.max.apply(null, all.map(function (n) { return gen[n]; }));
+            all.forEach(function (n) { if (gen[n] < mx) { gen[n] = mx; changed = true; } });
           });
         }
         return { byName: byName, spouse: spouse, gen: gen };
@@ -942,12 +952,28 @@
             if (ka !== kb) return ka < kb ? -1 : 1;
             return a.name < b.name ? -1 : 1;
           });
-          var placed = [], used = {};
+          var placed = [], used = {}, pulled = {};
           row.forEach(function (p) {
             if (used[p.name]) return;
             used[p.name] = true; placed.push(p);
             var s = spouse[p.name];
-            if (s && byName[s] && gen[s] === gi && !used[s]) { used[s] = true; placed.push(byName[s]); }
+            if (s && byName[s] && gen[s] === gi && !used[s]) { used[s] = true; placed.push(byName[s]); pulled[s] = true; }
+          });
+          // Quem foi puxado para junto do cônjuge traz os irmãos solteiros para
+          // o seu outro lado (ex.: Breno ao lado da Pri, que está ao lado do Joey).
+          Object.keys(pulled).forEach(function (nm) {
+            var P = byName[nm];
+            if (!P || !P.parents || !P.parents.length) return;
+            placed.filter(function (q) {
+              return q !== P && !spouse[q.name] && (q.parents || []).some(function (n) { return P.parents.indexOf(n) >= 0; });
+            }).forEach(function (S) {
+              var sIdx = placed.indexOf(S), cur = placed.indexOf(P);
+              if (sIdx < 0 || cur < 0 || Math.abs(sIdx - cur) <= 1) return;
+              placed.splice(sIdx, 1);
+              cur = placed.indexOf(P);
+              var sp = spouse[P.name], spIdx = sp ? placed.indexOf(byName[sp]) : -1;
+              placed.splice(spIdx === cur - 1 || spIdx < 0 ? cur + 1 : cur, 0, S);
+            });
           });
           rows[gi] = placed;
           placed.forEach(function (p, i) { pos[p.name] = { x: i * (CW + HG) + 4, y: gi * (CH + VG) + 4 }; });
