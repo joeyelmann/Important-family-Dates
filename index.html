@@ -111,13 +111,15 @@
       .tree-tools { position: absolute; top: 8px; right: 8px; display: flex; gap: 6px; z-index: 3; }
       .tree-tools button { font: inherit; font-size: 15px; line-height: 1; padding: 7px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; box-shadow: var(--shadow); }
       .tree-tools button:hover { border-color: var(--gold); }
-      .person-modal { position: fixed; inset: 0; z-index: 60; display: flex; align-items: center; justify-content: center; padding: 14px; }
-      .person-modal[hidden] { display: none; }
-      .pm-backdrop { position: absolute; inset: 0; background: rgba(32, 26, 14, .48); }
-      .pm-box { position: relative; width: min(430px, 100%); max-height: 86vh; overflow: auto; border-radius: var(--radius); }
-      .pm-box .person { grid-template-columns: 1fr; margin: 0; }
-      .pm-box .person .id-block { padding-right: 34px; }
-      .pm-close { position: absolute; top: 8px; right: 8px; z-index: 2; width: 32px; height: 32px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font-size: 18px; line-height: 1; cursor: pointer; box-shadow: var(--shadow); }
+      .person-pop { position: absolute; z-index: 6; width: 252px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow); padding: 12px 14px 11px; }
+      .person-pop[hidden] { display: none; }
+      .pp-close { position: absolute; top: 5px; right: 7px; border: none; background: none; color: var(--ink-faint); font-size: 17px; line-height: 1; cursor: pointer; padding: 2px 4px; }
+      .pp-close:hover { color: var(--ink); }
+      .pp-name { font-family: "Lora", Georgia, serif; font-size: 16.5px; font-weight: 600; padding-right: 18px; }
+      .pp-rel { color: var(--ink-soft); font-size: 13px; margin-top: 1px; }
+      .pp-lines { margin-top: 8px; display: flex; flex-direction: column; gap: 6px; }
+      .pp-line { font-size: 13.5px; line-height: 1.35; }
+      .pp-k { display: block; font-size: 10.5px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--ink-faint); }
       #tree .t-link { stroke: var(--line); stroke-width: 1.6; fill: none; }
       #tree .t-spouse { stroke: var(--gold); stroke-width: 2; fill: none; }
       #tree .t-card { cursor: pointer; }
@@ -424,7 +426,7 @@
       </section>
 
       <h2 class="section-title">&#193;rvore da fam&#237;lia</h2>
-      <p class="tree-hint">Toque num nome para destacar pais, filhos e cônjuge. Arraste para navegar pela árvore; zoom com os botões +/−, a roda do mouse ou pinçando a tela.</p>
+      <p class="tree-hint">Toque num nome para ver os dados e destacar pais, filhos e cônjuge. Arraste para navegar pela árvore; zoom com os botões +/−, a roda do mouse ou pinçando a tela.</p>
       <div class="tree-wrap">
         <div class="tree-tools">
           <button type="button" id="tz-out" aria-label="Diminuir zoom">&#8722;</button>
@@ -432,12 +434,9 @@
           <button type="button" id="tz-fit">Ajustar</button>
         </div>
         <svg id="tree" role="img" aria-label="&#193;rvore geneal&#243;gica da fam&#237;lia"></svg>
-      </div>
-      <div class="person-modal" id="person-modal" hidden>
-        <div class="pm-backdrop" id="pm-backdrop"></div>
-        <div class="pm-box" role="dialog" aria-modal="true" aria-label="Dados da pessoa">
-          <button type="button" class="pm-close" id="pm-close" aria-label="Fechar">&#215;</button>
-          <div id="pm-content"></div>
+        <div class="person-pop" id="person-pop" hidden>
+          <button type="button" class="pp-close" id="pp-close" aria-label="Fechar">&#215;</button>
+          <div id="pp-content"></div>
         </div>
       </div>
 
@@ -1091,7 +1090,7 @@
           g.addEventListener("click", function (ev) {
             ev.stopPropagation();
             if (p.name === TREE_SEL && PM_NAME === p.name) { treeSelect(null); closePersonPopup(); }
-            else { treeSelect(p.name); openPersonPopup(p); }
+            else { treeSelect(p.name); openPersonPopup(p, pos[p.name]); }
           });
           canvas.appendChild(g);
         });
@@ -1099,25 +1098,62 @@
         treeSelect(TREE_SEL);
         fitTree();
       }
-      // ---------- Pop-up com os dados da pessoa ----------
-      var PM_NAME = null;
-      function openPersonPopup(p) {
-        PM_NAME = p.name;
-        document.getElementById("pm-content").innerHTML = personCard(p);
-        document.getElementById("person-modal").hidden = false;
-        document.body.style.overflow = "hidden";
+      // ---------- Janelinha com as informações principais da pessoa ----------
+      // Abre ao lado do cartão clicado, sem cobrir a árvore, e acompanha o
+      // zoom/arrastar. Só leitura: sem botão de edição.
+      var PM_NAME = null, PM_POS = null;
+      function popHTML(p) {
+        var g = parseISO(p.greg), nh = parseISO(p.nextHeb), isY = p.type === "yahrzeit";
+        var L = [];
+        function line(k, v) { L.push('<div class="pp-line"><span class="pp-k">' + k + "</span>" + v + "</div>"); }
+        if (isY) {
+          if (p.birth) line("Nascimento", fmtDate(parseISO(p.birth)) + (p.birthCity ? " · " + esc(p.birthCity) : ""));
+          line("Falecimento", fmtDate(g));
+          if (p.wedding) line("Casamento", fmtDate(parseISO(p.wedding)));
+          line("Mishmará", esc(p.hebrew) + " · próximo em " + fmtDate(nh) + " (mishmará de " + (nh.getFullYear() - g.getFullYear()) + " anos" + (relDays(nh) ? ", " + relDays(nh).toLowerCase() : "") + ")");
+        } else {
+          var ng = nextAnnual(p);
+          line("Nascimento", fmtDate(g) + (p.birthCity ? " · " + esc(p.birthCity) : ""));
+          line("Data hebraica", esc(p.hebrew));
+          if (p.wedding) line("Casamento", fmtDate(parseISO(p.wedding)));
+          line("Próximo aniversário", fmtDate(ng) + " · faz " + (ng.getFullYear() - g.getFullYear()) + " anos" + (relDays(ng) ? " · " + relDays(ng).toLowerCase() : ""));
+        }
+        return '<div class="pp-name">' + esc(p.name) + "</div>" +
+          (p.relation ? '<div class="pp-rel">' + esc(p.relation) + "</div>" : "") +
+          '<div class="pp-lines">' + L.join("") + "</div>";
+      }
+      function openPersonPopup(p, nodePos) {
+        PM_NAME = p.name; PM_POS = nodePos || null;
+        var pop = document.getElementById("person-pop");
+        document.getElementById("pp-content").innerHTML = popHTML(p);
+        pop.hidden = false;
+        positionPersonPop();
       }
       function closePersonPopup() {
-        PM_NAME = null;
-        var m = document.getElementById("person-modal");
-        if (m) m.hidden = true;
-        document.body.style.overflow = "";
+        PM_NAME = null; PM_POS = null;
+        var pop = document.getElementById("person-pop");
+        if (pop) pop.hidden = true;
+      }
+      function positionPersonPop() {
+        var pop = document.getElementById("person-pop");
+        if (!pop || pop.hidden || !PM_POS) return;
+        var wrap = pop.parentNode;
+        var w = wrap.clientWidth, h = wrap.clientHeight;
+        var pw = pop.offsetWidth || 252, ph = pop.offsetHeight || 150;
+        var x = TZ.tx + TZ.k * PM_POS.x, y = TZ.ty + TZ.k * PM_POS.y;
+        var left = x + (172 * TZ.k) / 2 - pw / 2;
+        left = Math.max(6, Math.min(left, w - pw - 6));
+        var top = y + 64 * TZ.k + 8;
+        if (top + ph > h - 4 && y - ph - 8 > 4) top = y - ph - 8;
+        pop.style.left = left + "px";
+        pop.style.top = top + "px";
       }
       // ---------- Navegação da árvore: zoom e arrastar ----------
       var TREE_W = 0, TREE_H = 0, TZ = { k: 1, tx: 0, ty: 0 }, suppressTreeClick = false;
       function applyTZ() {
         var c = document.getElementById("tree-canvas");
         if (c) c.setAttribute("transform", "translate(" + TZ.tx + " " + TZ.ty + ") scale(" + TZ.k + ")");
+        positionPersonPop();
       }
       function fitTree() {
         var svg = document.getElementById("tree");
@@ -1473,12 +1509,7 @@
         renderTree();
         render();
         initTreeNav();
-        document.getElementById("pm-close").addEventListener("click", closePersonPopup);
-        document.getElementById("pm-backdrop").addEventListener("click", closePersonPopup);
-        document.getElementById("pm-content").addEventListener("click", function (e) {
-          var b = e.target.closest ? e.target.closest("[data-edit]") : null;
-          if (b) { closePersonPopup(); startEdit(Number(b.getAttribute("data-edit"))); }
-        });
+        document.getElementById("pp-close").addEventListener("click", closePersonPopup);
         document.addEventListener("keydown", function (e) { if (e.key === "Escape") closePersonPopup(); });
         document.getElementById("cadastro-form").addEventListener("submit", onCadastroSubmit);
         document.getElementById("add-toggle").addEventListener("click", function (e) {
