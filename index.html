@@ -208,14 +208,10 @@
       .upcoming {
         flex: 1;
         min-width: 0;
-        display: flex;
-        gap: 10px;
-        overflow-x: auto;
-        scroll-snap-type: x mandatory;
-        scrollbar-width: none;
-        padding-bottom: 2px;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(168px, 1fr));
+        gap: 12px;
       }
-      .upcoming::-webkit-scrollbar { display: none; }
       }
       .up-card {
         background: var(--surface);
@@ -223,9 +219,6 @@
         border-radius: var(--radius);
         box-shadow: var(--shadow);
         padding: 13px 14px 12px;
-        flex: 0 0 calc(20% - 8px);
-        min-width: 0;
-        scroll-snap-align: start;
       }
       .up-card .when {
         font-size: 12.5px;
@@ -454,8 +447,7 @@
       @media (max-width: 640px) {
         .wrap { padding: 20px 12px 44px; }
         .page-head p { font-size: 15px; }
-        .upcoming { gap: 10px; }
-        .up-card { flex-basis: calc(50% - 5px); }
+        .upcoming { grid-template-columns: 1fr 1fr; gap: 10px; }
         .up-card { padding: 11px 12px 10px; }
         .up-card .who { font-size: 15.5px; }
         .up-card .what { font-size: 13px; }
@@ -801,19 +793,14 @@
         return evs.filter(function (e) { return daysUntil(e.date) >= 0; })
                   .sort(function (a, b) { return a.date - b.date; });
       }
-      function updateUpArrows() {
-        var track = document.getElementById("upcoming");
-        var prev = document.getElementById("up-prev"), next = document.getElementById("up-next");
-        if (!track || !prev || !next) return;
-        var over = track.scrollWidth > track.clientWidth + 1;
-        prev.style.display = over ? "" : "none";
-        next.style.display = over ? "" : "none";
-        prev.disabled = track.scrollLeft <= 0;
-        next.disabled = track.scrollLeft + track.clientWidth >= track.scrollWidth - 1;
-      }
+      var upPage = 0;
       function renderUpcoming() {
         var box = document.getElementById("upcoming");
         var evs = buildEvents().slice(0, 10);
+        var pages = Math.max(1, Math.ceil(evs.length / 5));
+        if (upPage > pages - 1) upPage = pages - 1;
+        if (upPage < 0) upPage = 0;
+        evs = evs.slice(upPage * 5, upPage * 5 + 5);
         box.innerHTML = evs.map(function (e) {
           var d = e.date;
           var short = WEEKDAYS_SHORT[d.getDay()] + " " + d.getDate() + "/" + (d.getMonth() + 1);
@@ -825,7 +812,10 @@
             '<div class="date">' + esc(short) + "</div>" +
             "</article>";
         }).join("");
-        updateUpArrows();
+        var pages = Math.max(1, Math.ceil(buildEvents().slice(0, 10).length / 5));
+        var prev = document.getElementById("up-prev"), next = document.getElementById("up-next");
+        if (prev) { prev.disabled = upPage <= 0; prev.style.display = pages > 1 ? "" : "none"; }
+        if (next) { next.disabled = upPage >= pages - 1; next.style.display = pages > 1 ? "" : "none"; }
       }
 
       /* ---------- Filtros ---------- */
@@ -1813,14 +1803,12 @@
         fillSelects();
         populateComQuem();
         renderUpcoming();
-        var upTrack = document.getElementById("upcoming");
-        if (upTrack) {
-          upTrack.addEventListener("scroll", updateUpArrows);
-          var upPrev = document.getElementById("up-prev"), upNext = document.getElementById("up-next");
-          if (upPrev) upPrev.addEventListener("click", function () { upTrack.scrollBy({ left: -upTrack.clientWidth, behavior: "smooth" }); });
-          if (upNext) upNext.addEventListener("click", function () { upTrack.scrollBy({ left: upTrack.clientWidth, behavior: "smooth" }); });
-          if (window.addEventListener) window.addEventListener("resize", updateUpArrows);
-        }
+        var upPrev = document.getElementById("up-prev"), upNext = document.getElementById("up-next");
+        if (upPrev) upPrev.addEventListener("click", function () { if (upPage > 0) { upPage--; renderUpcoming(); } });
+        if (upNext) upNext.addEventListener("click", function () {
+          var total = Math.ceil(buildEvents().slice(0, 10).length / 5);
+          if (upPage < total - 1) { upPage++; renderUpcoming(); }
+        });
         renderTree();
         render();
         initTreeNav();
