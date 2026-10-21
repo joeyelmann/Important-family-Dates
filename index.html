@@ -189,11 +189,33 @@
 
       /* ---------- Próximas datas ---------- */
       .prox-window { font-size: 14px; font-weight: 400; color: var(--ink-faint); }
-      .up-empty { grid-column: 1 / -1; color: var(--ink-soft); font-size: 13.5px; margin: 0; }
+      .up-carousel { display: flex; align-items: stretch; gap: 8px; }
+      .up-arrow {
+        flex-shrink: 0;
+        align-self: center;
+        width: 38px; height: 38px;
+        border-radius: 50%;
+        border: 1px solid var(--line);
+        background: var(--surface);
+        color: var(--ink);
+        font-size: 22px;
+        line-height: 1;
+        cursor: pointer;
+        box-shadow: var(--shadow);
+      }
+      .up-arrow:hover:not(:disabled) { border-color: var(--gold); }
+      .up-arrow:disabled { opacity: 0.35; cursor: default; }
       .upcoming {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(168px, 1fr));
+        flex: 1;
+        min-width: 0;
+        display: flex;
         gap: 10px;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        scrollbar-width: none;
+        padding-bottom: 2px;
+      }
+      .upcoming::-webkit-scrollbar { display: none; }
       }
       .up-card {
         background: var(--surface);
@@ -201,6 +223,9 @@
         border-radius: var(--radius);
         box-shadow: var(--shadow);
         padding: 11px 13px 10px;
+        flex: 0 0 calc((100% - 40px) / 5);
+        min-width: 0;
+        scroll-snap-align: start;
       }
       .up-card .when {
         font-size: 12.5px;
@@ -429,7 +454,8 @@
       @media (max-width: 640px) {
         .wrap { padding: 20px 12px 44px; }
         .page-head p { font-size: 15px; }
-        .upcoming { grid-template-columns: 1fr 1fr; gap: 9px; }
+        .upcoming { gap: 10px; }
+        .up-card { flex-basis: calc((100% - 10px) / 2); }
         .up-card { padding: 11px 12px 10px; }
         .up-card .who { font-size: 15.5px; }
         .up-card .what { font-size: 13px; }
@@ -481,8 +507,12 @@
       <div class="rule" aria-hidden="true"></div>
 
       <section aria-labelledby="prox-title">
-        <h2 class="section-title" id="prox-title" style="margin-top:0">Próximas datas <span class="prox-window">· próximos 4 dias</span></h2>
-        <div class="upcoming" id="upcoming"></div>
+        <h2 class="section-title" id="prox-title" style="margin-top:0">Próximas datas <span class="prox-window">· próximos 10 eventos</span></h2>
+        <div class="up-carousel">
+          <button type="button" class="up-arrow" id="up-prev" aria-label="Ver datas anteriores">&#8249;</button>
+          <div class="upcoming" id="upcoming"></div>
+          <button type="button" class="up-arrow" id="up-next" aria-label="Ver próximas datas">&#8250;</button>
+        </div>
       </section>
 
       <h2 class="section-title">&#193;rvore da fam&#237;lia</h2>
@@ -770,17 +800,20 @@
         return evs.filter(function (e) { return daysUntil(e.date) >= 0; })
                   .sort(function (a, b) { return a.date - b.date; });
       }
+      function updateUpArrows() {
+        var track = document.getElementById("upcoming");
+        var prev = document.getElementById("up-prev"), next = document.getElementById("up-next");
+        if (!track || !prev || !next) return;
+        var over = track.scrollWidth > track.clientWidth + 1;
+        prev.style.display = over ? "" : "none";
+        next.style.display = over ? "" : "none";
+        prev.disabled = track.scrollLeft <= 0;
+        next.disabled = track.scrollLeft + track.clientWidth >= track.scrollWidth - 1;
+      }
       function renderUpcoming() {
         var box = document.getElementById("upcoming");
-        var all = buildEvents();
-        var evs = all.filter(function (e) { var n = daysUntil(e.date); return n >= 0 && n <= 3; });
-        var note = "";
-        if (!evs.length && all.length) {
-          var first = all[0].date;
-          evs = all.filter(function (e) { return e.date.getTime() === first.getTime(); });
-          note = '<p class="up-empty">Nenhuma data nos próximos 4 dias — a próxima:</p>';
-        }
-        box.innerHTML = note + evs.map(function (e) {
+        var evs = buildEvents().slice(0, 10);
+        box.innerHTML = evs.map(function (e) {
           return '<article class="up-card' + (e.yahrzeit ? " yahrzeit" : "") + '">' +
             '<div class="when">' + esc(relDays(e.date) || "") + "</div>" +
             '<div class="who">' + esc(e.person.name) + "</div>" +
@@ -788,6 +821,7 @@
             '<div class="date">' + esc(e.sub) + "</div>" +
             "</article>";
         }).join("");
+        updateUpArrows();
       }
 
       /* ---------- Filtros ---------- */
@@ -1775,6 +1809,14 @@
         fillSelects();
         populateComQuem();
         renderUpcoming();
+        var upTrack = document.getElementById("upcoming");
+        if (upTrack) {
+          upTrack.addEventListener("scroll", updateUpArrows);
+          var upPrev = document.getElementById("up-prev"), upNext = document.getElementById("up-next");
+          if (upPrev) upPrev.addEventListener("click", function () { upTrack.scrollBy({ left: -upTrack.clientWidth, behavior: "smooth" }); });
+          if (upNext) upNext.addEventListener("click", function () { upTrack.scrollBy({ left: upTrack.clientWidth, behavior: "smooth" }); });
+          if (window.addEventListener) window.addEventListener("resize", updateUpArrows);
+        }
         renderTree();
         render();
         initTreeNav();
