@@ -428,6 +428,8 @@
         padding-top: 14px;
       }
       .hidden { display: none !important; }
+      .today-line { color: var(--ink-soft); font-size: 15px; margin: -2px 0 14px; }
+      .today-line strong { color: var(--ink); font-weight: 600; }
       html, body { overflow-x: clip; }
       * { -webkit-tap-highlight-color: transparent; }
 
@@ -474,6 +476,7 @@
           calendário gregoriano e no calendário hebraico, para consultar por pessoa, por mês
           ou pelo que vem a seguir.
         </p>
+        <p class="today-line" id="today-line"></p>
         <p class="add-line">
           <a href="#cadastro" id="add-toggle" aria-expanded="false">＋ Adicionar pessoa</a>
         </p>
@@ -1764,7 +1767,21 @@
         try { saved = localStorage.getItem("fd_mode"); } catch (e) {}
         if (saved === "view" || saved === "edit") unlockApp(saved);
       }
+      function fillTodayLine() {
+        var el = document.getElementById("today-line");
+        if (!el) return;
+        var now = new Date();
+        var greg = now.toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+        greg = greg.charAt(0).toUpperCase() + greg.slice(1);
+        el.innerHTML = "Hoje · <strong>" + greg + "</strong>";
+        hebGet("https://www.hebcal.com/converter?cfg=json&g2h=1&gy=" + now.getFullYear() + "&gm=" + (now.getMonth() + 1) + "&gd=" + now.getDate())
+          .then(function (j) {
+            el.innerHTML = "Hoje · <strong>" + greg + "</strong> · " + j.hd + " de " + j.hm + " de " + j.hy;
+          })
+          .catch(function () {});
+      }
       async function bootApp() {
+        fillTodayLine();
         var up0 = document.getElementById("upcoming");
         if (up0) up0.innerHTML = '<p class="tree-hint">Carregando dados…</p>';
         await loadMembers();
