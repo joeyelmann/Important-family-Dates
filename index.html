@@ -37,9 +37,11 @@
         --slate-soft: #e6ebef;
         --shadow: 0 1px 2px rgba(60, 48, 16, 0.06), 0 6px 20px rgba(60, 48, 16, 0.06);
         --radius: 14px;
+        color-scheme: light;
       }
       @media (prefers-color-scheme: dark) {
-        :root {
+        :root:not(.theme-light) {
+          color-scheme: dark;
           --bg: #16140f;
           --surface: #201d16;
           --surface-2: #29251b;
@@ -55,6 +57,26 @@
           --shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 6px 20px rgba(0, 0, 0, 0.3);
         }
       }
+      /* Tema manual (botão 🌙/☀️): vale quando o usuário escolhe; sem escolha, vale o sistema. */
+      :root.theme-dark {
+        color-scheme: dark;
+        --bg: #16140f;
+        --surface: #201d16;
+        --surface-2: #29251b;
+        --ink: #f0ead9;
+        --ink-soft: #c4bba4;
+        --ink-faint: #978d76;
+        --line: #3a3527;
+        --gold: #d9ab3c;
+        --gold-strong: #ecc96a;
+        --gold-soft: #38301a;
+        --slate: #9db4c8;
+        --slate-soft: #26313c;
+        --shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 6px 20px rgba(0, 0, 0, 0.3);
+      }
+      :root.theme-dark .seg button[aria-pressed="true"] { color: #1d1807; }
+      :root.theme-dark .seg button[aria-pressed="true"]:hover { color: #1d1807; }
+      :root.theme-dark .empty button { color: #1d1807; }
       * { box-sizing: border-box; }
       html { -webkit-text-size-adjust: 100%; }
       body {
@@ -313,12 +335,12 @@
         color: #fff;
       }
       @media (prefers-color-scheme: dark) {
-        .seg button[aria-pressed="true"] { color: #1d1807; }
+        :root:not(.theme-light) .seg button[aria-pressed="true"] { color: #1d1807; }
       }
       .seg button:hover { color: var(--ink); }
       .seg button[aria-pressed="true"]:hover { color: #fff; }
       @media (prefers-color-scheme: dark) {
-        .seg button[aria-pressed="true"]:hover { color: #1d1807; }
+        :root:not(.theme-light) .seg button[aria-pressed="true"]:hover { color: #1d1807; }
       }
       .view-tabs { margin-left: auto; }
       .result-count { color: var(--ink-faint); font-size: 14px; margin: 14px 2px 0; }
@@ -391,7 +413,7 @@
         background: var(--gold); color: #fff; border: 0;
         padding: 8px 18px; border-radius: 999px; cursor: pointer;
       }
-      @media (prefers-color-scheme: dark) { .empty button { color: #1d1807; } }
+      @media (prefers-color-scheme: dark) { :root:not(.theme-light) .empty button { color: #1d1807; } }
 
       /* ---------- Calendários ---------- */
       .cal-grid {
@@ -494,6 +516,7 @@
           <span class="mode-chip" id="mode-chip"></span>
           <button type="button" class="mode-btn" id="mode-upgrade" style="display:none">Entrar como editor</button>
           <button type="button" class="mode-btn" id="mode-logout">Sair</button>
+          <button type="button" class="mode-btn" id="theme-toggle">🌙 Modo escuro</button>
         </p>
       </header>
       <div class="rule" aria-hidden="true"></div>
@@ -1795,6 +1818,20 @@
           })
           .catch(function () {});
       }
+      function effectiveTheme() {
+        var s = null;
+        try { s = localStorage.getItem("fd_theme"); } catch (e) {}
+        if (s === "dark" || s === "light") return s;
+        return (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) ? "dark" : "light";
+      }
+      function applyTheme() {
+        var t = effectiveTheme();
+        var root = document.documentElement;
+        root.classList.toggle("theme-dark", t === "dark");
+        root.classList.toggle("theme-light", t === "light");
+        var b = document.getElementById("theme-toggle");
+        if (b) b.textContent = t === "dark" ? "☀️ Modo claro" : "🌙 Modo escuro";
+      }
       async function bootApp() {
         fillTodayLine();
         var up0 = document.getElementById("upcoming");
@@ -1813,6 +1850,17 @@
         render();
         initTreeNav();
         document.getElementById("pp-close").addEventListener("click", closePersonPopup);
+        document.getElementById("theme-toggle").addEventListener("click", function () {
+          var next = effectiveTheme() === "dark" ? "light" : "dark";
+          try { localStorage.setItem("fd_theme", next); } catch (e) {}
+          applyTheme();
+        });
+        if (window.matchMedia) {
+          var themeMM = window.matchMedia("(prefers-color-scheme: dark)");
+          var onSysTheme = function () { try { if (!localStorage.getItem("fd_theme")) applyTheme(); } catch (e) {} };
+          if (themeMM.addEventListener) themeMM.addEventListener("change", onSysTheme);
+          else if (themeMM.addListener) themeMM.addListener(onSysTheme);
+        }
         document.getElementById("pp-edit").addEventListener("click", function () {
           var p = PM_NAME ? BYNAME[PM_NAME] : null;
           closePersonPopup();
@@ -1871,6 +1919,7 @@
         });
       }
 
+      applyTheme();
       document.addEventListener("DOMContentLoaded", init);
     </script>
   </body>
