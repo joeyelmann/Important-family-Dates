@@ -222,8 +222,8 @@
         border: 1px solid var(--line);
         border-radius: var(--radius);
         box-shadow: var(--shadow);
-        padding: 11px 13px 10px;
-        flex: 0 0 calc((100% - 40px) / 5);
+        padding: 13px 14px 12px;
+        flex: 0 0 calc(20% - 8px);
         min-width: 0;
         scroll-snap-align: start;
       }
@@ -455,7 +455,7 @@
         .wrap { padding: 20px 12px 44px; }
         .page-head p { font-size: 15px; }
         .upcoming { gap: 10px; }
-        .up-card { flex-basis: calc((100% - 10px) / 2); }
+        .up-card { flex-basis: calc(50% - 5px); }
         .up-card { padding: 11px 12px 10px; }
         .up-card .who { font-size: 15.5px; }
         .up-card .what { font-size: 13px; }
@@ -733,6 +733,7 @@
       var GREG_MONTHS = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
       var HEB_ORDER = ["Tishrei","Cheshvan","Kislev","Tevet","Shevat","Adar I","Adar II","Nisan","Iyyar","Sivan","Tammuz","Av","Elul"];
       var WEEKDAYS = ["domingo","segunda-feira","terça-feira","quarta-feira","quinta-feira","sexta-feira","sábado"];
+      var WEEKDAYS_SHORT = ["dom","seg","ter","qua","qui","sex","sáb"];
 
       function parseISO(s) {
         if (!s) return null;
@@ -814,11 +815,14 @@
         var box = document.getElementById("upcoming");
         var evs = buildEvents().slice(0, 10);
         box.innerHTML = evs.map(function (e) {
+          var d = e.date;
+          var short = WEEKDAYS_SHORT[d.getDay()] + " " + d.getDate() + "/" + (d.getMonth() + 1);
+          if (e.kind === "greg" && e.person.hebrew) short += " · " + e.person.hebrew;
           return '<article class="up-card' + (e.yahrzeit ? " yahrzeit" : "") + '">' +
             '<div class="when">' + esc(relDays(e.date) || "") + "</div>" +
             '<div class="who">' + esc(e.person.name) + "</div>" +
             '<div class="what">' + esc(e.label) + "</div>" +
-            '<div class="date">' + esc(e.sub) + "</div>" +
+            '<div class="date">' + esc(short) + "</div>" +
             "</article>";
         }).join("");
         updateUpArrows();
