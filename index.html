@@ -1080,6 +1080,33 @@
               if (groups.indexOf(sg) > groups.indexOf(g)) g.members.push(p); else g.members.unshift(p);
             });
           });
+          // Casais que atravessam blocos: blocos ligados por casamento viram
+          // uma unidade só na hora de ordenar, para nenhum bloco estranho cair
+          // no meio de um casal (ex.: os filhos do Helio entre Joey e Priscilla).
+          // A ordem dentro da unidade segue a ordem prévia dos blocos, e a regra
+          // da borda (acima) já deixou os cônjuges de frente um para o outro.
+          (function () {
+            var par = groups.map(function (_, i) { return i; });
+            function find(x) { while (par[x] !== x) { par[x] = par[par[x]]; x = par[x]; } return x; }
+            groups.forEach(function (g, i) {
+              g.members.forEach(function (p) {
+                var s = spouse[p.name];
+                if (!s || !groupOf[s]) return;
+                var j = groups.indexOf(groupOf[s]);
+                var ri = find(i), rj = find(j);
+                if (ri !== rj) par[ri] = rj;
+              });
+            });
+            var units = [], umap = {};
+            groups.forEach(function (g, i) {
+              var r = find(i);
+              if (!umap[r]) { umap[r] = { key: 0, n: 0, members: [] }; units.push(umap[r]); }
+              umap[r].key += parentMid(g); umap[r].n += 1;
+              umap[r].members.push.apply(umap[r].members, g.members);
+            });
+            units.sort(function (a, b) { return (a.key / a.n) - (b.key / b.n); });
+            groups = units.map(function (u) { return { members: u.members }; });
+          })();
           var placed = [], placedSet = {};
           function placeWithSpouse(p) {
             if (placedSet[p.name]) return;
@@ -1412,7 +1439,9 @@
         var sp = SPOUSES[comQuem];
         switch (relacao) {
           case "Filho": case "Filha":
-            out.parents = [comQuem]; if (sp) out.parents.push(sp); break;
+            out.parents = [comQuem];
+            if (sp) { out.parents.push(sp); out.relationLabel = relacao + " de " + first + " e " + sp.split(" ")[0]; }
+            break;
           case "Pai": case "Mãe":
             out.linkParentOf = comQuem; break;
           case "Irmão": case "Irmã":
