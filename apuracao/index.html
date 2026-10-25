@@ -42,6 +42,9 @@
   .legenda span{display:inline-flex;align-items:center;gap:6px}
   .sw{width:14px;height:14px;border-radius:4px;display:inline-block;border:1px solid rgba(0,0,0,.12)}
   table{width:100%;border-collapse:collapse;font-size:13px}
+  .tblwrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .tblwrap table{min-width:540px}
+  .tblwrap th,.tblwrap td{white-space:nowrap}
   th,td{padding:8px 6px;text-align:left;border-bottom:1px solid #eef0f2}
   th{color:#6b7280;font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.4px}
   td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
@@ -60,7 +63,7 @@
   <div class="hero">
     <h1>🗳️ Apuração Presidente 2026 — 2º turno</h1>
     <p class="sub">Mapa por estado • quem lidera em cada UF</p>
-    <span class="live"><span class="pulse"></span>AO VIVO · próxima atualização em <b id="cd">5:00</b></span>
+    <span class="live"><span class="pulse"></span>AO VIVO · próxima atualização em <b id="cd">1:00</b></span>
   </div>
   <div class="body">
     <div class="placar" id="placar"></div>
@@ -87,10 +90,12 @@
     </div>
 
     <h2 class="sec">Resultados por UF</h2>
+    <div class="tblwrap">
     <table>
       <thead><tr><th>UF</th><th>Estado</th><th>Líder</th><th class="num">%</th><th class="num">Margem</th><th class="num">Seções</th></tr></thead>
       <tbody id="tbody"></tbody>
     </table>
+    </div>
   </div>
   <div class="rodape">
     <p class="fonte"><strong>Fonte: TSE — Tribunal Superior Eleitoral</strong><br><span id="tsrodape">Atualizado em 25/10/2026 às 20:16 (horário de Brasília)</span></p>
@@ -561,13 +566,14 @@ carregarMapa().then(()=>{ tentarAtualizar(); });
 (function(){
   var prev = null;
   function tick(){
-    // Horário de Brasília = UTC-3 o ano todo (sem horário de verão)
+    // Horário de Brasília = UTC-3 o ano todo (sem horário de verão).
+    // Ciclo de 1 minuto, alinhado ao relógio: recarrega na virada do minuto.
     var brt = new Date(Date.now() - 3*3600*1000);
-    var rem = 300 - ((brt.getUTCMinutes() % 5) * 60 + brt.getUTCSeconds());
-    if (rem <= 0) rem = 300;
+    var rem = 60 - brt.getUTCSeconds();
+    if (rem <= 0) rem = 60;
     var el = document.getElementById('cd');
-    if (el) el.textContent = Math.floor(rem/60) + ':' + ('0' + (rem%60)).slice(-2);
-    // O contador só aumenta quando cruza a fronteira de 5 min -> recarrega
+    if (el) el.textContent = '0:' + ('0' + rem).slice(-2);
+    // O contador só aumenta quando cruza a virada do minuto -> recarrega
     // com cache-buster para buscar a nova rodada publicada.
     if (prev !== null && rem > prev + 2) {
       location.href = location.pathname + '?t=' + Date.now();
