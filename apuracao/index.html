@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Apuração Presidente 2026 — 2º turno</title>
+<style>
+  *{box-sizing:border-box}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:#eef1f5;color:#16181d;margin:0;padding:16px}
+  .card{max-width:900px;margin:0 auto;background:#ffffff;border-radius:20px;overflow:hidden;box-shadow:0 10px 40px rgba(20,30,60,.12)}
+  .hero{background:linear-gradient(135deg,#0f2a5c 0%,#17407f 55%,#1d5fc2 100%);color:#fff;padding:30px 28px 24px}
+  .hero h1{font-size:26px;margin:0 0 6px;letter-spacing:-.3px}
+  .hero .sub{font-size:14px;opacity:.85;margin:0}
+  .hero .live{display:inline-block;margin-top:10px;font-size:12px;font-weight:700;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.35);border-radius:20px;padding:4px 12px}
+  .live .pulse{display:inline-block;width:8px;height:8px;border-radius:50%;background:#4ade80;margin-right:6px;animation:pl 1.6s infinite}
+  @keyframes pl{0%,100%{opacity:1}50%{opacity:.35}}
+  .body{padding:24px 28px}
+  .placar{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:6px}
+  .cand{background:#f7f8fa;border-radius:14px;padding:14px 16px}
+  .cand.c22{border-top:4px solid #1f5fc0}
+  .cand.c13{border-top:4px solid #c0392b}
+  .cand .nome{font-size:15px;font-weight:800}
+  .cand .partido{font-size:12px;color:#6b7280;margin-bottom:6px}
+  .cand .pct{font-size:34px;font-weight:800;letter-spacing:-1px;line-height:1}
+  .cand .votos{font-size:12px;color:#6b7280;margin-top:4px}
+  .stackbar{display:flex;height:16px;border-radius:8px;overflow:hidden;margin:14px 0 4px;background:#eceff3}
+  .stackbar .b22{background:linear-gradient(90deg,#1f5fc0,#3b82d6)}
+  .stackbar .b13{background:linear-gradient(90deg,#e05a5a,#c0392b)}
+  .seclinha{display:flex;justify-content:space-between;font-size:12.5px;color:#6b7280;margin:8px 0 0}
+  .secbar{height:8px;background:#eceff3;border-radius:4px;overflow:hidden;margin-top:6px}
+  .secbar div{height:100%;background:#9aa1ab;border-radius:4px;transition:width .6s}
+  .nota50{font-size:12.5px;color:#6b7280;margin:10px 0 0;text-align:center}
+  h2.sec{font-size:17px;margin:26px 0 12px;letter-spacing:-.2px}
+  #mapwrap{position:relative;background:#f7f8fa;border-radius:14px;padding:8px}
+  #maploading{color:#6b7280;font-size:14px;padding:40px 0;text-align:center;margin:0}
+  #maperror{color:#b3261e;font-size:14px;padding:12px;background:#fdecea;border-radius:8px;display:none;margin:8px}
+  svg#map{width:100%;height:auto;display:block}
+  svg#map path{stroke:#ffffff;stroke-width:1.1}
+  svg#map text{font-size:11px;font-weight:800;fill:#fff;paint-order:stroke;stroke:rgba(0,0,0,.5);stroke-width:2.6px;pointer-events:none;text-anchor:middle}
+  .legenda{display:flex;flex-wrap:wrap;gap:8px 14px;margin-top:12px;font-size:12.5px;color:#3c4043}
+  .legenda span{display:inline-flex;align-items:center;gap:6px}
+  .sw{width:14px;height:14px;border-radius:4px;display:inline-block;border:1px solid rgba(0,0,0,.12)}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{padding:8px 6px;text-align:left;border-bottom:1px solid #eef0f2}
+  th{color:#6b7280;font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.4px}
+  td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+  .dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px}
+  .rodape{background:#f7f8fa;padding:20px 28px 22px;border-top:1px solid #eceff3;font-size:12.5px;color:#6b7280}
+  .rodape .fonte{margin:0 0 8px}
+  .rodape .fonte strong{color:#3c4043}
+  .rodape .brand{margin:8px 0 0;font-size:13px;color:#3c4043}
+  .rodape .brand b{color:#1d5fc2}
+  .rodape .assin{margin:4px 0 0;font-size:12px;color:#9aa1ab}
+  @media(max-width:560px){.placar{grid-template-columns:1fr}.hero h1{font-size:21px}.body{padding:18px}}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="hero">
+    <h1>🗳️ Apuração Presidente 2026 — 2º turno</h1>
+    <p class="sub">Mapa por estado • quem lidera em cada UF</p>
+    <span class="live"><span class="pulse"></span>AO VIVO · próxima atualização em <b id="cd">5:00</b></span>
+  </div>
+  <div class="body">
+    <div class="placar" id="placar"></div>
+    <div class="stackbar" id="stackbar"></div>
+    <div class="seclinha"><span id="secoestxt">—</span><span id="tscurto">—</span></div>
+    <div class="secbar"><div id="secoesfill" style="width:0%"></div></div>
+    <div class="seclinha" id="exteriorlinha" style="display:none"><span id="exteriortxt">—</span></div>
+    <p class="nota50">Para vencer no 2º turno: mais de 50% dos votos válidos.</p>
+
+    <h2 class="sec">Mapa do Brasil</h2>
+    <div id="mapwrap">
+      <p id="maploading">Carregando mapa do Brasil…</p>
+      <p id="maperror"></p>
+      <svg id="map" viewBox="0 0 960 960" role="img" aria-label="Mapa do Brasil colorido pelo líder da apuração em cada estado" style="display:none"></svg>
+    </div>
+    <div class="legenda">
+      <span><i class="sw" style="background:#1f5fc0"></i>Flávio &gt;15pp</span>
+      <span><i class="sw" style="background:#6f9de6"></i>Flávio 5–15pp</span>
+      <span><i class="sw" style="background:#b9cff2"></i>Flávio &lt;5pp</span>
+      <span><i class="sw" style="background:#c0392b"></i>Lula &gt;15pp</span>
+      <span><i class="sw" style="background:#e67f7f"></i>Lula 5–15pp</span>
+      <span><i class="sw" style="background:#f2b8b8"></i>Lula &lt;5pp</span>
+      <span><i class="sw" style="background:#dfe3e8"></i>sem dados</span>
+    </div>
+
+    <h2 class="sec">Resultados por UF</h2>
+    <table>
+      <thead><tr><th>UF</th><th>Estado</th><th>Líder</th><th class="num">%</th><th class="num">Margem</th><th class="num">Seções</th></tr></thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+  <div class="rodape">
+    <p class="fonte"><strong>Fonte: TSE — Tribunal Superior Eleitoral</strong><br><span id="tsrodape">Atualizado em 25/10/2026 às 20:11 (horário de Brasília)</span></p>
+    <p class="brand">Acompanhe a apuração com o <b>Muse</b> 📲 — seu assistente pessoal de IA</p>
+    <p class="assin">Mapa gerado por <b>Yossef</b>, assistente pessoal</p>
+  </div>
+</div>
+<script>
+const DATA = {
+  "gerado": "25/10/2026 20:11",
+  "secoes_pct": 53.3,
+  "nacional": [
+    {
+      "n": "22",
+      "nome": "Flávio Bolsonaro",
+      "partido": "PL",
+      "votos": 20206283,
+      "pct": 50.63
+    },
+    {
+      "n": "13",
+      "nome": "Lula",
+      "partido": "PT",
+      "votos": 19705297,
+      "pct": 49.37
+    }
+  ],
+  "ufs": {
+    "AC": {
+      "nome": "Acre",
+      "lider": "22",
+      "lider_nome": "Flávio Bolsonaro",
+      "pct": 65.94,
+      "votos": 207504,
+      "margem": 31.88,
+      "secoes": 72.03
+    },
+    "AL": {
+      "nome": "Alagoas",
+      "lider": "13",
+      "lider_nome": "Lula",
+      "pct": 64.16,
+      "votos": 636437,
+      "margem": 28.32,
+      "secoes": 53.51
+    },
+    "AM": {
+      "nome": "Amazonas",
+      "lider": "13",
+      "lider_nome": "Lula",
+      "pct": 51.35,
+      "votos": 816642,
+      "margem": 2.69,
+      "secoes": 71.89
+    },
+    "AP": {
+      "nome": "Amapá",
+      "lider": "13",
+      "lider_nome": "Lula",
+      "pct": 55.03,
+      "votos": 116188,
+      "margem": 10.07,
+      "secoes": 52.93
+    },
+    "BA": {
+      "nome": "Bahia",
+      "lider": "13",
+      "lider_nome": "Lula",
+      "pct": 70.45,
+      "votos": 760429,
+      "margem": 40.91,
+      "secoes": 11.83
+    },
+    "CE": {
+      "nome": "Ceará",
+      "lider": "13",
+      "lider_nome": "Lula",
+      "pct": 64.88,
+      "votos": 924540,
+      "margem": 29.76,
+      "secoes": 23.08
+    },
+    "DF": {
+      "nome": "Distrito Federal",
+      "lider": "22",
+      "lider_nome": "Flávio Bolsonaro",
+      "pct": 54.32,
+      "votos": 923759,
+      "margem": 8.65,
+      "secoes": 94.0
+    },
+    "ES": {
+      "nome": "Espírito Santo",
+      "lider": "22",
+      "lider_nome": "Flávio Bolsonaro",
+      "pct": 56.65,
+      "votos": 983529,
+      "margem": 13.29,
+      "secoes": 75.55
+    },
+    "GO": {
+      "nome": "Goiás",
+      "lider": "22",
+      "lider_nome": "Flávio Bolsonaro",
+      "pct": 61.59,
+      "votos": 630473,
+      "margem": 23.19,
+      "secoes": 26.19
+    },
+    "MA": {
+      "nome": "Maranhão",
+      "lider": "13",
+      "lider_nome": "Lula",
+      "pct": 66.86,
+      "votos": 1485822,
+      "margem": 33.72,
+      "secoes": 53.3
+    },
+    "MG": {
+      "nome": "Minas Gerais",
+      "lider": "22",
+      "lider_nome": "Flávio Bolsonaro",
+      "pct": 50.08,
+      "votos": 1757205,
+      "margem": 0.16,
+      "secoes": 26.33
+    },
+    "MS": {
+      "nome": "Mato Grosso do Sul",
+      "lider": "22",
+      "lider_nome": "Flávio Bolsonaro",
+      "pct": 60.27,
+      "votos": 819373,
+      "margem": 20.54,
+      "secoes": 86.73
+    },
+    "MT": {
+      "nome": "Mato Grosso",
+      "lider": "22",
+      "lider_nome": "Flávio Bolsonaro",
+      "pct": 65.45,
+      "votos": 762029,
+      "margem": 30.91,
+      "secoes": 56.21
+    },
+    "PA": {
+      "nome": "Pará",
+      "lider": "13",
+      "lider_nome": "Lula",
+      "pct": 54.25,
+      "votos": 1729945,
+      "margem": 8.51,
+      "secoes": 63.14
+    },
+    "PB": {
+      "nome": "Paraíba",
+      "lider": "13",
+      "lider_nome": "Lula",
+      "pct": 68.0,
+      "votos": 1506473,
+      "margem": 36.0,
+      "secoes": 83.95
+    },
+    "PE": {
+      "nome": "Pernambuco",
+      "lider": "13",
+      "lider_nome": "Lula",
+      "pct": 71.86,
+      "votos": 850105,
+      "margem": 43.72,
+      "secoes": 20.42
+    },
+    "PI": {
+      "nome": "Piauí",
+      "lider": "13",
+      "lider_nome": "Lula",
+      "pct": 77.55,
+      "votos": 114077,
+      "margem": 55.11,
+      "secoes": 7.02
+    },
+    "PR": {
+      "nome": "Paraná",
+      "lider": "22",
+      "lider_nome": "Flávio Bolsonaro",
+      "pct": 62.58,
+      "votos": 3298886,
+      "margem": 25.16,
+      "secoes": 76.8
+    },
+    "RJ": {
+      "nome": "Rio de Janeiro",
+      "lider": "22",
+      "lider_nome": "Flávio Bolsonaro",
+      "pct": 56.13,
+      "votos": 96260,
+      "margem": 12.27,
+      "secoes": 1.82
+    },
+    "RN": {
+      "nome": "Rio Grande do Norte",
+      "lider": "13",
+      "lider_nome": "Lula",
+      "pct": 67.6,
+      "votos": 661820,
+      "margem": 35.19,
+      "secoes": 46.24
+    },
+    "RO": {
+      "nome": "Rondônia",
+      "lider": "22",
+      "lider_nome": "Flávio Bolsonaro",
+      "pct": 67.1,
+      "votos": 351113,
+      "margem": 34.19,
+      "secoes": 53.49
+    },
+    "RR": {
+      "nome": "Roraima",
+      "lider": "22",
+      "lider_nome": "Flávio Bolsonaro",
+      "pct": 65.24,
+      "votos": 35590,
+      "margem": 30.48,
+      "secoes": 20.28
+    },
+    "RS": {
+      "nome": "Rio Grande do Sul",
+      "lider": "22",
+      "lider_nome": "Flávio Bolsonaro",
+      "pct": 59.71,
+      "votos": 1680840,
+      "margem": 19.41,
+      "secoes": 41.71
+    },
+    "SC": {
+      "nome": "Santa Catarina",
+      "lider": "22",
+      "lider_nome": "Flávio Bolsonaro",
+      "pct": 66.78,
+      "votos": 1120829,
+      "margem": 33.56,
+      "secoes": 35.99
+    },
+    "SE": {
+      "nome": "Sergipe",
+      "lider": "13",
+      "lider_nome": "Lula",
+      "pct": 69.43,
+      "votos": 40119,
+      "margem": 38.86,
+      "secoes": 4.04
+    },
+    "SP": {
+      "nome": "São Paulo",
+      "lider": "22",
+      "lider_nome": "Flávio Bolsonaro",
+      "pct": 59.25,
+      "votos": 1468446,
+      "margem": 18.5,
+      "secoes": 9.89
+    },
+    "TO": {
+      "nome": "Tocantins",
+      "lider": "22",
+      "lider_nome": "Flávio Bolsonaro",
+      "pct": 51.45,
+      "votos": 421996,
+      "margem": 2.89,
+      "secoes": 90.03
+    }
+  },
+  "exterior": {
+    "lula_pct": 58.53,
+    "flavio_pct": 41.47,
+    "secoes_pct": 63.06
+  }
+};
+
+const GEOJSON_URL = "https://raw.githubusercontent.com/giuliano-macedo/geodata-br-states/main/geojson/br_states.json";
+const TSE_BASE = "https://resultados.tse.jus.br/oficial/ele2026/6257/dados";
+const UFS = ["AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA","PB","PE","PI","PR","RJ","RN","RS","RO","RR","SC","SP","SE","TO"];
+let D = DATA;
+const pathPorUF = {};
+
+function fmt(n){ return Number(n).toLocaleString("pt-BR"); }
+function pct1(n){ return Number(n).toFixed(1).replace(".",",") + "%"; }
+function cor(lider, margem){
+  if(!lider) return "#dfe3e8";
+  const m = Number(margem)||0;
+  if(lider==="22") return m<5 ? "#b9cff2" : (m<15 ? "#6f9de6" : "#1f5fc0");
+  if(lider==="13") return m<5 ? "#f2b8b8" : (m<15 ? "#e67f7f" : "#c0392b");
+  return "#cfd4d9";
+}
+
+function renderPlacar(d){
+  const el = document.getElementById("placar");
+  el.innerHTML = d.nacional.map(c =>
+    '<div class="cand c'+c.n+'"><div class="nome">'+c.nome+'</div>'+
+    '<div class="partido">'+c.n+' • '+c.partido+'</div>'+
+    '<div class="pct">'+pct1(c.pct)+'</div>'+
+    '<div class="votos">'+fmt(c.votos)+' votos</div></div>'
+  ).join("");
+  const sb = document.getElementById("stackbar");
+  sb.innerHTML = d.nacional.map(c =>
+    '<div class="b'+c.n+'" style="width:'+c.pct+'%"></div>'
+  ).join("");
+  document.getElementById("secoesfill").style.width = d.secoes_pct + "%";
+  document.getElementById("secoestxt").textContent = pct1(d.secoes_pct) + " das seções apuradas";
+  document.getElementById("tscurto").textContent = d.gerado + " (Brasília)";
+  document.getElementById("tsrodape").textContent = "Atualizado em " + d.gerado.replace(" "," às ") + " (horário de Brasília)";
+  var ext = d.exterior;
+  if (ext) {
+    document.getElementById("exteriorlinha").style.display = "flex";
+    document.getElementById("exteriortxt").textContent =
+      "🌍 Exterior: Lula " + pct1(ext.lula_pct) + " × Flávio " + pct1(ext.flavio_pct) +
+      " (" + pct1(ext.secoes_pct) + " apurado)";
+  }
+}
+
+function renderTabela(d){
+  const tb = document.getElementById("tbody");
+  const rows = Object.keys(d.ufs).map(uf => ({uf, ...d.ufs[uf]}))
+    .sort((a,b) => a.nome.localeCompare(b.nome, "pt-BR"));
+  tb.innerHTML = rows.map(r =>
+    "<tr><td><b>"+r.uf+"</b></td><td>"+r.nome+"</td>"+
+    '<td><span class="dot" style="background:'+cor(r.lider,r.margem)+'"></span>'+(r.lider_nome||"—")+"</td>"+
+    '<td class="num">'+pct1(r.pct)+'</td>'+
+    '<td class="num">+'+pct1(r.margem)+'</td>'+
+    '<td class="num">'+pct1(r.secoes)+"</td></tr>"
+  ).join("");
+}
+
+function colorirMapa(d){
+  Object.keys(pathPorUF).forEach(uf => {
+    const info = d.ufs[uf];
+    const p = pathPorUF[uf];
+    if(info){
+      p.setAttribute("fill", cor(info.lider, info.margem));
+      const t = p.querySelector("title");
+      if(t) t.textContent = info.nome+" — "+info.lider_nome+" ("+info.lider+"): "+pct1(info.pct)+
+        " ("+fmt(info.votos)+" votos) • margem +"+pct1(info.margem)+" • "+pct1(info.secoes)+" das seções";
+    } else {
+      p.setAttribute("fill", "#dfe3e8");
+    }
+  });
+}
+
+async function carregarMapa(){
+  const svg = document.getElementById("map");
+  try{
+    const r = await fetch(GEOJSON_URL);
+    if(!r.ok) throw new Error("geo "+r.status);
+    const gj = await r.json();
+    // bbox global
+    let minLon=1e9,maxLon=-1e9,minLat=1e9,maxLat=-1e9;
+    const visitar = c => {
+      if(typeof c[0]==="number"){
+        const lo=c[0], la=c[1];
+        if(lo<minLon)minLon=lo; if(lo>maxLon)maxLon=lo;
+        if(la<minLat)minLat=la; if(la>maxLat)maxLat=la;
+      } else c.forEach(visitar);
+    };
+    gj.features.forEach(f => visitar(f.geometry.coordinates));
+    const kx = Math.cos(((minLat+maxLat)/2)*Math.PI/180);
+    const rangeX=(maxLon-minLon)*kx, rangeY=(maxLat-minLat);
+    const W=960, pad=14;
+    const k=(W-2*pad)/Math.max(rangeX,rangeY);
+    const H=rangeY*k+2*pad;
+    const X=lo=>pad+(lo-minLon)*kx*k, Y=la=>pad+(maxLat-la)*k;
+    svg.setAttribute("viewBox","0 0 "+W.toFixed(0)+" "+H.toFixed(0));
+    const ns="http://www.w3.org/2000/svg";
+    gj.features.forEach(f=>{
+      const uf = (f.id || (f.properties&&(f.properties.SIGLA||f.properties.sigla)) || "").toUpperCase();
+      if(!uf) return;
+      const geom=f.geometry;
+      const polys = geom.type==="Polygon" ? [geom.coordinates] : geom.coordinates;
+      let dAttr="", fMinX=1e9,fMaxX=-1e9,fMinY=1e9,fMaxY=-1e9;
+      polys.forEach(poly=>{
+        poly.forEach(ring=>{
+          dAttr += "M"+ring.map(p=>{
+            const x=X(p[0]), y=Y(p[1]);
+            if(x<fMinX)fMinX=x; if(x>fMaxX)fMaxX=x;
+            if(y<fMinY)fMinY=y; if(y>fMaxY)fMaxY=y;
+            return x.toFixed(1)+","+y.toFixed(1);
+          }).join("L")+"Z";
+        });
+      });
+      const path=document.createElementNS(ns,"path");
+      path.setAttribute("d",dAttr);
+      const title=document.createElementNS(ns,"title");
+      path.appendChild(title);
+      svg.appendChild(path);
+      const cx=(fMinX+fMaxX)/2, cy=(fMinY+fMaxY)/2;
+      const label=document.createElementNS(ns,"text");
+      label.setAttribute("x",cx.toFixed(1)); label.setAttribute("y",(cy+4).toFixed(1));
+      label.textContent=uf;
+      svg.appendChild(label);
+      pathPorUF[uf]=path;
+    });
+    document.getElementById("maploading").style.display="none";
+    svg.style.display="block";
+    colorirMapa(D);
+  }catch(e){
+    document.getElementById("maploading").style.display="none";
+    const err=document.getElementById("maperror");
+    err.style.display="block";
+    err.textContent="Não foi possível carregar o contorno dos estados agora — os números da tabela abaixo continuam válidos.";
+  }
+}
+
+function extrairCandidatos(j){
+  const out=[];
+  (j.carg||[]).forEach(c=>{(c.agr||[]).forEach(a=>{(a.par||[]).forEach(p=>{(p.cand||[]).forEach(cd=>{
+    out.push({n:String(cd.n), nmu:cd.nmu,
+      votos:parseInt(cd.vap,10)||0,
+      pct:parseFloat(String(cd.pvapn||"0").replace(",","."))||0});
+  })})})});
+  out.sort((a,b)=>b.votos-a.votos);
+  return out;
+}
+
+async function tentarAtualizar(){
+  try{
+    const slugs=["br"].concat(UFS.map(u=>u.toLowerCase()));
+    const res=await Promise.allSettled(slugs.map(s=>
+      fetch(TSE_BASE+"/"+s+"/"+s+"-c0001-e006257-u.json").then(r=>{ if(!r.ok) throw 0; return r.json(); })
+    ));
+    if(res[0].status!=="fulfilled") return;
+    const nat=res[0].value;
+    const natTs=(nat.dg+" "+nat.hg).slice(0,16);
+    if(natTs < D.gerado) return; // arquivo nacional desatualizado: mantém dados embutidos
+    const cands=extrairCandidatos(nat);
+    if(cands.length<2) return;
+    const nomeCurto=n=>(n==="22"?"Flávio Bolsonaro":(n==="13"?"Lula":null));
+    const nd={ gerado:(nat.dg+" "+nat.hg).slice(0,16),
+      secoes_pct:parseFloat(String(nat.s.pstn).replace(",",".")),
+      nacional:cands.slice(0,2).map(c=>({n:c.n,
+        nome:nomeCurto(c.n)||c.nmu, partido:c.n==="22"?"PL":(c.n==="13"?"PT":""),
+        votos:c.votos, pct:Math.round(c.pct*100)/100})),
+      ufs:{} };
+    const nomes={AC:"Acre",AL:"Alagoas",AP:"Amapá",AM:"Amazonas",BA:"Bahia",CE:"Ceará",DF:"Distrito Federal",ES:"Espírito Santo",GO:"Goiás",MA:"Maranhão",MT:"Mato Grosso",MS:"Mato Grosso do Sul",MG:"Minas Gerais",PA:"Pará",PB:"Paraíba",PE:"Pernambuco",PI:"Piauí",PR:"Paraná",RJ:"Rio de Janeiro",RN:"Rio Grande do Norte",RS:"Rio Grande do Sul",RO:"Rondônia",RR:"Roraima",SC:"Santa Catarina",SP:"São Paulo",SE:"Sergipe",TO:"Tocantins"};
+    UFS.forEach((uf,i)=>{
+      const rr=res[i+1];
+      if(rr.status!=="fulfilled") return;
+      const cs=extrairCandidatos(rr.value);
+      if(cs.length<2) return;
+      const s=rr.value.s;
+      nd.ufs[uf]={ nome:nomes[uf], lider:cs[0].n,
+        lider_nome:nomeCurto(cs[0].n)||cs[0].nmu,
+        pct:Math.round(cs[0].pct*100)/100, votos:cs[0].votos,
+        margem:Math.round((cs[0].pct-cs[1].pct)*100)/100,
+        secoes:Math.round(parseFloat(String(s.pstn).replace(",","."))*100)/100 };
+    });
+    D=nd;
+    renderPlacar(D); renderTabela(D); colorirMapa(D);
+    const badge=document.getElementById("badge");
+    if(badge){ badge.textContent="atualizado ao vivo"; badge.classList.add("live"); }
+  }catch(e){ /* mantém dados embutidos silenciosamente */ }
+}
+
+renderPlacar(D);
+renderTabela(D);
+carregarMapa().then(()=>{ tentarAtualizar(); });
+</script>
+
+<script>
+(function(){
+  var prev = null;
+  function tick(){
+    // Horário de Brasília = UTC-3 o ano todo (sem horário de verão)
+    var brt = new Date(Date.now() - 3*3600*1000);
+    var rem = 300 - ((brt.getUTCMinutes() % 5) * 60 + brt.getUTCSeconds());
+    if (rem <= 0) rem = 300;
+    var el = document.getElementById('cd');
+    if (el) el.textContent = Math.floor(rem/60) + ':' + ('0' + (rem%60)).slice(-2);
+    // O contador só aumenta quando cruza a fronteira de 5 min -> recarrega
+    // com cache-buster para buscar a nova rodada publicada.
+    if (prev !== null && rem > prev + 2) {
+      location.href = location.pathname + '?t=' + Date.now();
+      return;
+    }
+    prev = rem;
+  }
+  setInterval(tick, 1000);
+  tick();
+})();
+</script>
+</body>
+</html>
