@@ -2,7 +2,6 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Apuração Presidente 2026 — 2º turno</title>
 <style>
@@ -63,7 +62,7 @@
   <div class="hero">
     <h1>🗳️ Apuração Presidente 2026 — 2º turno</h1>
     <p class="sub">Mapa por estado • quem lidera em cada UF</p>
-    <span class="live"><span class="pulse"></span>AO VIVO · próxima atualização em <b id="cd">1:00</b></span>
+    <span class="live">APURAÇÃO ENCERRADA · resultado final</span>
   </div>
   <div class="body">
     <div class="placar" id="placar"></div>
@@ -98,28 +97,28 @@
     </div>
   </div>
   <div class="rodape">
-    <p class="fonte"><strong>Fonte: TSE — Tribunal Superior Eleitoral</strong><br><span id="tsrodape">Atualizado em 25/10/2026 às 21:32 (horário de Brasília)</span></p>
+    <p class="fonte"><strong>Fonte: TSE — Tribunal Superior Eleitoral</strong><br><span id="tsrodape">Atualizado em 25/10/2026 às 21:34 (horário de Brasília)</span></p>
     <p class="brand">Acompanhe a apuração com o <b>Muse</b> 📲 — seu assistente pessoal de IA</p>
     <p class="assin">Mapa gerado por <b>Yossef</b>, assistente pessoal</p>
   </div>
 </div>
 <script>
 const DATA = {
-  "gerado": "25/10/2026 21:32",
-  "secoes_pct": 99.89,
+  "gerado": "25/10/2026 21:34",
+  "secoes_pct": 99.9,
   "nacional": [
     {
       "n": "13",
       "nome": "Lula",
       "partido": "PT",
-      "votos": 64164515,
+      "votos": 64169977,
       "pct": 51.77
     },
     {
       "n": "22",
       "nome": "Flávio Bolsonaro",
       "partido": "PL",
-      "votos": 59785656,
+      "votos": 59789320,
       "pct": 48.23
     }
   ],
@@ -174,7 +173,7 @@ const DATA = {
       "lider": "13",
       "lider_nome": "Lula",
       "pct": 68.92,
-      "votos": 4032162,
+      "votos": 4032313,
       "margem": 37.84,
       "secoes": 99.91
     },
@@ -201,25 +200,25 @@ const DATA = {
       "lider": "22",
       "lider_nome": "Flávio Bolsonaro",
       "pct": 59.66,
-      "votos": 2345247,
+      "votos": 2345334,
       "margem": 19.33,
-      "secoes": 99.99
+      "secoes": 100.0
     },
     "MA": {
       "nome": "Maranhão",
       "lider": "13",
       "lider_nome": "Lula",
       "pct": 69.52,
-      "votos": 2801485,
-      "margem": 39.04,
-      "secoes": 99.78
+      "votos": 2801651,
+      "margem": 39.03,
+      "secoes": 99.79
     },
     "MG": {
       "nome": "Minas Gerais",
       "lider": "13",
       "lider_nome": "Lula",
       "pct": 50.39,
-      "votos": 6329268,
+      "votos": 6329490,
       "margem": 0.79,
       "secoes": 99.69
     },
@@ -263,10 +262,10 @@ const DATA = {
       "nome": "Pernambuco",
       "lider": "13",
       "lider_nome": "Lula",
-      "pct": 69.18,
-      "votos": 4107120,
+      "pct": 69.19,
+      "votos": 4107753,
       "margem": 38.37,
-      "secoes": 99.75
+      "secoes": 99.76
     },
     "PI": {
       "nome": "Piauí",
@@ -354,7 +353,7 @@ const DATA = {
       "lider": "22",
       "lider_nome": "Flávio Bolsonaro",
       "pct": 53.85,
-      "votos": 14137221,
+      "votos": 14137376,
       "margem": 7.7,
       "secoes": 99.98
     },
@@ -369,9 +368,9 @@ const DATA = {
     }
   },
   "exterior": {
-    "lula_pct": 53.6,
-    "flavio_pct": 46.4,
-    "secoes_pct": 96.82
+    "lula_pct": 53.63,
+    "flavio_pct": 46.37,
+    "secoes_pct": 96.97
   }
 };
 
@@ -560,30 +559,6 @@ async function tentarAtualizar(){
 renderPlacar(D);
 renderTabela(D);
 carregarMapa().then(()=>{ tentarAtualizar(); });
-</script>
-
-<script>
-(function(){
-  var prev = null;
-  function tick(){
-    // Horário de Brasília = UTC-3 o ano todo (sem horário de verão).
-    // Ciclo de 1 minuto, alinhado ao relógio: recarrega na virada do minuto.
-    var brt = new Date(Date.now() - 3*3600*1000);
-    var rem = 60 - brt.getUTCSeconds();
-    if (rem <= 0) rem = 60;
-    var el = document.getElementById('cd');
-    if (el) el.textContent = '0:' + ('0' + rem).slice(-2);
-    // O contador só aumenta quando cruza a virada do minuto -> recarrega
-    // com cache-buster para buscar a nova rodada publicada.
-    if (prev !== null && rem > prev + 2) {
-      location.href = location.pathname + '?t=' + Date.now();
-      return;
-    }
-    prev = rem;
-  }
-  setInterval(tick, 1000);
-  tick();
-})();
 </script>
 </body>
 </html>
